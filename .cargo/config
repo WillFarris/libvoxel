@@ -1,6 +1,3 @@
-[build]
-target_os = "android"
-
 [target.aarch64-linux-android]
 ar = "NDK/android-ndk-r22b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-ar"
 linker = "NDK/android-ndk-r22b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang"
