@@ -1,6 +1,13 @@
 pub(crate) mod shader;
 pub(crate) mod core;
-
-struct _GameState {
-    paused: bool
-}
+pub(crate) mod world;
+pub(crate) mod block;
+pub(crate) mod mesh;
+pub(crate) mod vertex;
+pub(crate) mod vectormath;
+pub(crate) mod meshgen;
+pub(crate) mod macros;
+pub(crate) mod player;
+pub(crate) mod inventory;
+pub(crate) mod camera;
+pub(crate) mod collision;

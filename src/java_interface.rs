@@ -4,7 +4,8 @@ extern crate gl;
 use self::jni::JNIEnv;
 use self::jni::objects::JClass;
 use self::jni::sys::jstring;
-use jni::sys::jfloat;
+use cgmath::Vector3;
+use jni::sys::{JNI_TRUE, jboolean, jfloat};
 use std::ffi::CString;
 
 use crate::engine::core::ENGINE;
@@ -17,8 +18,30 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_test(env: JNIE
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_setXY(_env: JNIEnv, nxj: jfloat, nyj: jfloat) {
-    ENGINE.set_xy(f32::from(nxj), f32::from(nyj));
+pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_lookAround(_env: JNIEnv, dx: jfloat, dy: jfloat) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.camera.rotate_on_x_axis(f32::from(dy));
+        player.camera.rotate_on_y_axis(f32::from(dx));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_moveAround(_env: JNIEnv, dx: jfloat, dy: jfloat, dz: jfloat, forward: jboolean) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.move_direction(Vector3::new(f32::from(dx), f32::from(dy), f32::from(dz)))
+    }
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_stopMoving(_env: JNIEnv, dx: jfloat, dy: jfloat, dz: jfloat, forward: jboolean) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.stop_move()
+    }
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_engineTick() {
+    ENGINE.tick();
 }
 
 #[no_mangle]
