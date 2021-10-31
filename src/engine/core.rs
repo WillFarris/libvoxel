@@ -78,7 +78,7 @@ impl<'a> Engine<'a> {
         
     }
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self, elapsed_time: f32) {
         self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.01);
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);
@@ -96,7 +96,7 @@ impl<'a> Engine<'a> {
                 shader.set_mat4(c_str!("perspective_matrix"), &projection);
                 shader.set_mat4(c_str!("view_matrix"), &view);
                 shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), 0.0 as f32);
+                shader.set_float(c_str!("time"), elapsed_time);
                 self.world.as_ref().unwrap().render_solid(self.player.as_ref().unwrap().position, self.player.as_ref().unwrap().camera.forward);
             }
             
@@ -105,7 +105,7 @@ impl<'a> Engine<'a> {
                 shader.set_mat4(c_str!("perspective_matrix"), &projection);
                 shader.set_mat4(c_str!("view_matrix"), &view);
                 shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), 0.0 as f32);
+                shader.set_float(c_str!("time"), elapsed_time);
                 self.world.as_ref().unwrap().render_grass();
             }
 
@@ -114,7 +114,7 @@ impl<'a> Engine<'a> {
                 shader.set_mat4(c_str!("perspective_matrix"), &projection);
                 shader.set_mat4(c_str!("view_matrix"), &view);
                 shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), 0.0 as f32);
+                shader.set_float(c_str!("time"), elapsed_time);
                 self.world.as_ref().unwrap().render_leaves();
             }
 

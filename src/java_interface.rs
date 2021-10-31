@@ -55,6 +55,6 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_onSurfaceChang
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_onDrawFrame() {
-    ENGINE.render();
+pub unsafe extern fn Java_org_farriswheel_voxelgame_RustInterface_onDrawFrame(_env: JNIEnv, elapsed_time: jfloat) {
+    ENGINE.render(f32::from(elapsed_time));
 }
