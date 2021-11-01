@@ -33,7 +33,7 @@ impl Chunk {
     }
 }
 
-pub struct World<'a> {
+pub struct World {
     seed: u32,
     pub chunks: HashMap<Vector3<isize>, Chunk>,
     pub generation_queue: HashMap<Vector3<isize>, LinkedList<(Vector3<usize>, usize)>>,
@@ -41,13 +41,13 @@ pub struct World<'a> {
     noise_scale: f64,
     perlin: Perlin,
     texture: Texture,
-    block_shader: &'a Shader,
-    grass_shader: &'a Shader,
-    leaves_shader: &'a Shader,
+    pub(crate) block_shader: Shader,
+    pub(crate) grass_shader: Shader,
+    pub(crate) leaves_shader: Shader,
 }
 
-impl<'a> World<'a> {
-    pub fn new(texture: Texture, block_shader: &'a Shader, grass_shader: &'a Shader, leaves_shader: &'a Shader, seed: u32) -> Self {
+impl World {
+    pub fn new(texture: Texture, block_shader: Shader, grass_shader: Shader, leaves_shader: Shader, seed: u32) -> Self {
         let noise_scale = 0.02;
         let noise_offset = Vector2::new(
             1_000_000.0 * rand::random::<f64>() + 3_141_592.0,

@@ -2,7 +2,7 @@ use std::{sync::Mutex, time::Instant};
 
 use cgmath::{Matrix4, Vector3};
 
-use crate::{c_str, engine::{camera::perspective_matrix, mesh, player, world}};
+use crate::{c_str, engine::{block, camera::perspective_matrix, mesh, player, world}};
 
 use super::{player::Player, shader, world::World};
 
@@ -11,40 +11,35 @@ enum EngineState {
     Paused,
 }
 
-pub(crate) struct Engine<'a> {
+pub(crate) struct Engine {
     state: EngineState,
-    world: Option<World<'a>>,
+    world: Option<World>,
     pub player: Option<Player>,
 
     sunlight_direction: Vector3<f32>,
 
+    delta_time: f32,
     elapsed_sec: f64,
-
-    block_shader: Option<shader::Shader>,
-    grass_shader: Option<shader::Shader>,
-    leaves_shader: Option<shader::Shader>,
 }
 
 pub(crate) static mut ENGINE: Engine = Engine {
     state: EngineState::Paused,
     world: None,
     player: None,
-    block_shader: None,
-    grass_shader: None,
-    leaves_shader: None,
     sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
+    delta_time: 0.01,
     elapsed_sec: 0.0
 };
 
 
-impl<'a> Engine<'a> {
+impl Engine {
 
-    pub fn start_engine(&'a mut self) {
+    pub fn start_engine(&mut self) {
         gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
         
-        self.block_shader = Some(shader::Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")));
-        self.grass_shader = Some(shader::Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")));
-        self.leaves_shader = Some(shader::Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")));
+        let block_shader = shader::Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+        let grass_shader = shader::Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+        let leaves_shader = shader::Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
     
         let _gui_shader = shader::Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl"));
 
@@ -52,9 +47,9 @@ impl<'a> Engine<'a> {
         let seed = rand::random();
         self.world = Some(world::World::new(
             mesh::Texture{id: terrain_texture_id}, 
-            &self.block_shader.as_ref().unwrap(), 
-            &self.grass_shader.as_ref().unwrap(),
-            self.leaves_shader.as_ref().unwrap(),
+            block_shader, 
+            grass_shader,
+            leaves_shader,
             seed
         ));
         self.player = Some(player::Player::new(Vector3::new(5.0, 65.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
@@ -74,12 +69,12 @@ impl<'a> Engine<'a> {
         self.elapsed_sec = 0.0;
     }
 
-    pub fn tick(&mut self) {
-        
+    pub fn tick(&mut self, delta_time: f32) {
+        self.delta_time = delta_time
     }
 
     pub fn render(&mut self, elapsed_time: f32) {
-        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.01);
+        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), self.delta_time);
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -91,31 +86,31 @@ impl<'a> Engine<'a> {
             let view = self.player.as_ref().unwrap().camera.view_matrix();
             //let model = Matrix4::from_scale(1.0);
 
-            if let Some(shader) = self.block_shader.as_ref() {
-                shader.use_program();
-                shader.set_mat4(c_str!("perspective_matrix"), &projection);
-                shader.set_mat4(c_str!("view_matrix"), &view);
-                shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), elapsed_time);
-                self.world.as_ref().unwrap().render_solid(self.player.as_ref().unwrap().position, self.player.as_ref().unwrap().camera.forward);
-            }
-            
-            if let Some(shader) = self.grass_shader.as_ref() {
-                shader.use_program();
-                shader.set_mat4(c_str!("perspective_matrix"), &projection);
-                shader.set_mat4(c_str!("view_matrix"), &view);
-                shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), elapsed_time);
-                self.world.as_ref().unwrap().render_grass();
-            }
+            if let Some(world) = self.world.as_mut() {
+                let block_shader = &mut world.block_shader;
+                block_shader.use_program();
+                block_shader.set_mat4(c_str!("perspective_matrix"), &projection);
+                block_shader.set_mat4(c_str!("view_matrix"), &view);
+                block_shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
+                block_shader.set_float(c_str!("time"), elapsed_time);
+                world.render_solid(self.player.as_ref().unwrap().position, self.player.as_ref().unwrap().camera.forward);
 
-            if let Some(shader) = self.leaves_shader.as_ref() {
-                shader.use_program();
-                shader.set_mat4(c_str!("perspective_matrix"), &projection);
-                shader.set_mat4(c_str!("view_matrix"), &view);
-                shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                shader.set_float(c_str!("time"), elapsed_time);
-                self.world.as_ref().unwrap().render_leaves();
+                let grass_shader = &mut world.grass_shader;
+                grass_shader.use_program();
+                grass_shader.set_mat4(c_str!("perspective_matrix"), &projection);
+                grass_shader.set_mat4(c_str!("view_matrix"), &view);
+                grass_shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
+                grass_shader.set_float(c_str!("time"), elapsed_time);
+                world.render_grass();
+
+                let leaves_shader = &mut world.leaves_shader;
+                leaves_shader.use_program();
+                leaves_shader.set_mat4(c_str!("perspective_matrix"), &projection);
+                leaves_shader.set_mat4(c_str!("view_matrix"), &view);
+                leaves_shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
+                leaves_shader.set_float(c_str!("time"), elapsed_time);
+                world.render_leaves();
+
             }
 
             /*gui_shader.use_program();
