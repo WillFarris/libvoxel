@@ -1,8 +1,6 @@
-use std::{sync::Mutex, time::Instant};
-
 use cgmath::{Matrix4, Vector3};
 
-use crate::{c_str, engine::{block, camera::perspective_matrix, mesh, player, world}};
+use crate::{c_str, engine::{camera::perspective_matrix, mesh, player, world}};
 
 use super::{player::Player, shader, world::World};
 
@@ -15,11 +13,8 @@ pub(crate) struct Engine {
     state: EngineState,
     world: Option<World>,
     pub player: Option<Player>,
-
     sunlight_direction: Vector3<f32>,
-
-    delta_time: f32,
-    elapsed_sec: f64,
+    elapsed_time: i64,
 }
 
 pub(crate) static mut ENGINE: Engine = Engine {
@@ -27,14 +22,13 @@ pub(crate) static mut ENGINE: Engine = Engine {
     world: None,
     player: None,
     sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
-    delta_time: 0.01,
-    elapsed_sec: 0.0
+    elapsed_time: 0
 };
 
 
 impl Engine {
 
-    pub fn start_engine(&mut self) {
+    pub fn start_engine(&mut self, start_time: i64) {
         gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
         
         let block_shader = shader::Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
@@ -66,15 +60,18 @@ impl Engine {
         }
 
         self.state = EngineState::Running;
-        self.elapsed_sec = 0.0;
+        self.elapsed_time = start_time;
     }
 
-    pub fn tick(&mut self, delta_time: f32) {
-        self.delta_time = delta_time
+    pub fn tick(&mut self, elapsed_time: i64) {
+        let delta_time = elapsed_time - self.elapsed_time;
+        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), (delta_time as f32) * 0.000000001);
+        self.elapsed_time = elapsed_time;
     }
 
-    pub fn render(&mut self, elapsed_time: f32) {
-        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), self.delta_time);
+    pub fn render(&mut self) {
+        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.01);
+        let elapsed_time = (self.elapsed_time as f32) * 0.000000001;
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -130,10 +127,6 @@ impl Engine {
             cursor_cube_mesh.draw();*/
 
         }
-        /*unsafe {
-            gl::ClearColor(self.x, self.y, 0.0, 0.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }*/
     }
 
 }

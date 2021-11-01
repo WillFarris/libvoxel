@@ -5,7 +5,7 @@ use self::jni::JNIEnv;
 use self::jni::objects::JClass;
 use self::jni::sys::jstring;
 use cgmath::Vector3;
-use jni::sys::{jfloat, jint, jobject};
+use jni::sys::{jfloat, jint, jlong, jobject};
 use std::ffi::CString;
 
 use crate::engine::core::ENGINE;
@@ -40,13 +40,16 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_stopMoving(_env:
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEnv, delta_time: jfloat) {
-    ENGINE.tick(f32::from(delta_time));
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEnv, elapsed_time: jlong) {
+    if let Some(_player) = ENGINE.player.as_ref() {
+        ENGINE.tick(elapsed_time);
+    }
+    
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(_env: JNIEnv, _gl: jobject, _config: jobject) {
-    ENGINE.start_engine();
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(_env: JNIEnv, _gl: jobject, _config: jobject, start_time: jlong) {
+    ENGINE.start_engine(start_time);
 }
 
 #[no_mangle]
@@ -54,6 +57,6 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCh
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject, elapsed_time: jfloat) {
-    ENGINE.render(f32::from(elapsed_time));
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject, _elapsed_time: jfloat) {
+    ENGINE.render();
 }

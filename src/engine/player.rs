@@ -1,6 +1,6 @@
 use cgmath::Vector3;
 
-use crate::engine::{block::{self, BLOCKS}, camera::Camera, collision::{self, rect_vs_rect}, vectormath::{Y_VECTOR, dda, len, normalize, normalize_inplace}, world::World};
+use crate::engine::{block::BLOCKS, camera::Camera, collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize}, world::World};
 use crate::engine::inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -4.0, z: 0.0};
@@ -13,7 +13,7 @@ pub(crate) struct Player {
     grounded: bool,
     height: f32,
 
-    pub inventory: Inventory,
+    pub _inventory: Inventory,
 }
 
 impl Player {
@@ -26,7 +26,7 @@ impl Player {
             grounded: false,
             height: 1.6,
 
-            inventory: Inventory::new(),
+            _inventory: Inventory::new(),
         }
     }
 
