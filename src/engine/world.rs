@@ -1,9 +1,8 @@
 use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}, mesh::*, meshgen::*, shader::Shader, vectormath::{dot, len, normalize}}};
-
-use std::ffi::CStr;
+use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader}};
+use crate::graphics::mesh::{Mesh, Texture};
 
 use noise::{Perlin, NoiseFn, Seedable};
 
@@ -531,7 +530,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = x_right_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        push_face(&position, 0, cur_vertices, &tex_coords[0]);
+                                        meshgen::push_face(&position, 0, cur_vertices, &tex_coords[0]);
                                     }
                                 }
 
@@ -544,7 +543,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = x_left_adjacent {
                                     if adjacent_block.transparent {
-                                        push_face(&position, 1, cur_vertices, &tex_coords[1]);
+                                        meshgen::push_face(&position, 1, cur_vertices, &tex_coords[1]);
                                     }
                                 }
 
@@ -558,7 +557,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = y_top_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        push_face(&position, 2, cur_vertices, &tex_coords[2]);
+                                        meshgen::push_face(&position, 2, cur_vertices, &tex_coords[2]);
                                     }
                                 }
         
@@ -571,7 +570,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = y_bottom_adjacent {
                                     if adjacent_block.transparent {
-                                        push_face(&position, 3, cur_vertices, &tex_coords[3]);
+                                        meshgen::push_face(&position, 3, cur_vertices, &tex_coords[3]);
                                     }
                                 }
 
@@ -584,7 +583,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = z_back_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        push_face(&position, 4, cur_vertices, &tex_coords[4]);
+                                        meshgen::push_face(&position, 4, cur_vertices, &tex_coords[4]);
                                     }
                                 }
 
@@ -598,14 +597,14 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = z_front_adjacent {
                                     if adjacent_block.transparent {
-                                        push_face(&position, 5, cur_vertices, &tex_coords[5]);
+                                        meshgen::push_face(&position, 5, cur_vertices, &tex_coords[5]);
                                     }
                                 }
                             }
                             MeshType::CrossedPlanes => {
-                                push_face(&position, 6, cur_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 6, cur_vertices, &tex_coords[0]);
                                 //push_face(&position, 7, &mut transparent_vertices, &tex_coords[0]);
-                                push_face(&position, 8, cur_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 8, cur_vertices, &tex_coords[0]);
                                 //push_face(&position, 9, &mut transparent_vertices, &tex_coords[0]);
                             }
                         }
@@ -622,9 +621,9 @@ impl World {
         });*/
 
         if let Some(chunk) = self.chunks.get_mut(chunk_index) {
-            let solid_mesh = crate::engine::mesh::Mesh::new(block_vertices, &self.texture, &self.block_shader);
-            let grass_mesh = crate::engine::mesh::Mesh::new(grass_vertices, &self.texture, &self.grass_shader);
-            let leaves_mesh = crate::engine::mesh::Mesh::new(leaves_vertices, &self.texture, &self.leaves_shader);
+            let solid_mesh = Mesh::new(block_vertices, &self.texture, &self.block_shader);
+            let grass_mesh = Mesh::new(grass_vertices, &self.texture, &self.grass_shader);
+            let leaves_mesh = Mesh::new(leaves_vertices, &self.texture, &self.leaves_shader);
             chunk.block_mesh = Some(solid_mesh);
             chunk.grass_mesh = Some(grass_mesh);
             chunk.leaves_mesh = Some(leaves_mesh);

@@ -1,8 +1,8 @@
 use cgmath::{Matrix4, Vector3};
 
-use crate::{c_str, engine::{camera::perspective_matrix, mesh, player, world}};
+use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{mesh::{self, Texture}, shader::Shader}};
 
-use super::{player::Player, shader, world::World};
+use super::{player::Player, world::World};
 
 enum EngineState {
     Running,
@@ -29,35 +29,24 @@ pub(crate) static mut ENGINE: Engine = Engine {
 impl Engine {
 
     pub fn start_engine(&mut self, start_time: i64) {
-        gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
         
-        let block_shader = shader::Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
-        let grass_shader = shader::Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
-        let leaves_shader = shader::Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+        
+        let block_shader = Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+        let grass_shader = Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+        let leaves_shader = Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
     
-        let _gui_shader = shader::Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl"));
+        let _gui_shader = Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl"));
 
         let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
         let seed = rand::random();
         self.world = Some(world::World::new(
-            mesh::Texture{id: terrain_texture_id}, 
+            Texture{id: terrain_texture_id}, 
             block_shader, 
             grass_shader,
             leaves_shader,
             seed
         ));
         self.player = Some(player::Player::new(Vector3::new(5.0, 65.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
-
-        unsafe {
-            gl::Enable(gl::DEPTH_TEST);
-            
-            gl::Enable(gl::CULL_FACE);
-            gl::CullFace(gl::BACK);
-            gl::FrontFace(gl::CW);
-    
-            gl::Enable(gl::BLEND);
-            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        }
 
         self.state = EngineState::Running;
         self.elapsed_time = start_time;

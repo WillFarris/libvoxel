@@ -6,7 +6,6 @@ use crate::engine::world;
 
 pub const X_VECTOR: Vector3<f32> = Vector3::new(1.0, 0.0, 0.0);
 pub const Y_VECTOR: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
-#[allow(unused)]
 pub const Z_VECTOR: Vector3<f32> = Vector3::new(0.0, 0.0, 1.0);
 
 #[derive(PartialEq)]

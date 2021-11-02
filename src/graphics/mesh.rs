@@ -1,10 +1,9 @@
-use crate::{c_str, engine::{shader::Shader, vertex::Vertex}};
-use std::{ffi::c_void, path::Path};
+use crate::{c_str, graphics::{shader::Shader, vertex::Vertex}};
+use std::ffi::c_void;
 use std::{ffi::CString, ptr};
-use std::ffi::CStr;
 use std::mem::size_of;
 use crate::offset_of;
-use gl::types::{*, self};
+use gl::types::*;
 use image::{self, GenericImageView};
 
 #[derive(Clone, Copy)]

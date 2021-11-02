@@ -1,5 +1,6 @@
-use crate::engine::{block::*, vertex::*, world::{CHUNK_SIZE, Chunk}};
 use cgmath::{Vector2, Vector3};
+
+use super::vertex::Vertex;
 
 const CUBE_FACES: [[Vertex; 6]; 10] = [
     
