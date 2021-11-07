@@ -8,7 +8,7 @@ use cgmath::Vector3;
 use jni::sys::{jfloat, jint, jlong, jobject};
 use std::ffi::CString;
 
-use crate::engine::core::ENGINE;
+use crate::{engine::core::ENGINE, physics::vectormath::dda};
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv, _: JClass) -> jstring {
@@ -40,9 +40,14 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_stopMoving(_env:
 }
 
 #[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env: JNIEnv) {
+    ENGINE.break_block();
+}
+
+#[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEnv, elapsed_time: jlong) {
     if let Some(_player) = ENGINE.player.as_ref() {
-        ENGINE.tick(elapsed_time);
+        ENGINE.tick(elapsed_time as f32);
     }
     
 }
@@ -57,7 +62,7 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCr
         let output = env.new_string(world_ptr.to_str().unwrap()).expect("Couldn't create java string!");
         return output.into_inner()
     }
-    env.new_string("from").expect("Couldn't create string").into_inner()
+    env.new_string("Created surface successfully").expect("Couldn't create string").into_inner()
 }
 
 #[no_mangle]
@@ -65,6 +70,6 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCh
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject) {
-    ENGINE.render();
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject, elapsed_time: jfloat) {
+    ENGINE.render(f32::from(elapsed_time));
 }

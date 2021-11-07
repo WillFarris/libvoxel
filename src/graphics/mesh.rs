@@ -29,10 +29,10 @@ impl Mesh {
         mesh
     }
 
-    fn setup_mesh(&mut self, shader: &Shader) {
+    pub fn setup_mesh(&mut self, shader: &Shader) {
         if self.vertices.len() == 0 {
+            //panic!("[ Mesh::setup_mesh() ] No vertices to setup!");
             return;
-            //panic!("[ Mesh::setup_mesh() ] No vertices to setup!")
         }
         unsafe {
             gl::ActiveTexture(gl::TEXTURE0);
@@ -40,9 +40,8 @@ impl Mesh {
             gl::TexParameterf(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as f32);
             gl::TexParameterf(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as f32);
 
-            let sampler_str = CString::new("texture_map").unwrap();
-            let sampler = sampler_str.as_ptr();
-            gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler), 0);
+            let sampler_str = c_str!("texture_map").as_ptr();
+            gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler_str), 0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
 
             gl::GenVertexArrays(1, &mut self.vao);
@@ -59,15 +58,27 @@ impl Mesh {
             //TODO: do the same as above if indices are desired later
 
             let size = size_of::<Vertex>() as i32;
+            
+            
             // vertex Positions
-            gl::EnableVertexAttribArray(0);
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, position) as *const c_void);
+            let position_location = gl::GetAttribLocation(shader.id, c_str!("position").as_ptr()) as u32;
+            gl::EnableVertexAttribArray(position_location);
+            gl::VertexAttribPointer(position_location, 3, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, position) as *const c_void);
+            
             // vertex normals
-            gl::EnableVertexAttribArray(1);
-            gl::VertexAttribPointer(1, 3, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, normal) as *const c_void);
+            let normal_location = gl::GetAttribLocation(shader.id, c_str!("normal").as_ptr()) as u32;
+            gl::EnableVertexAttribArray(normal_location);
+            gl::VertexAttribPointer(normal_location, 3, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, normal) as *const c_void);
+            
             // vertex texture coords
-            gl::EnableVertexAttribArray(2);
-            gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, tex_coords) as *const c_void);
+            let tex_coords_location = gl::GetAttribLocation(shader.id, c_str!("tex_coords").as_ptr()) as u32;
+            gl::EnableVertexAttribArray(tex_coords_location);
+            gl::VertexAttribPointer(tex_coords_location, 2, gl::FLOAT, gl::FALSE, size, offset_of!(Vertex, tex_coords) as *const c_void);
+            
+            let vertex_type_location = gl::GetAttribLocation(shader.id, c_str!("vtype").as_ptr()) as u32;
+            gl::EnableVertexAttribArray(vertex_type_location);
+            gl::VertexAttribPointer(vertex_type_location, 1, gl::INT, gl::FALSE, size, offset_of!(Vertex, vtype) as *const c_void);
+            //gl::VertexAttrib1f(3, offset_of!(Vertex, vtype));
         }
     }
 

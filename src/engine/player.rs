@@ -15,7 +15,7 @@ pub(crate) struct Player {
     grounded: bool,
     height: f32,
 
-    pub _inventory: Inventory,
+    pub inventory: Inventory,
 }
 
 impl Player {
@@ -23,12 +23,11 @@ impl Player {
         Self {
             camera: Camera::new(position, forward),
             position,
-            move_speed: 5.0,
+            move_speed: 3.0,
             direction: Vector3::new(0.0f32, 0.0f32, 0f32),
             grounded: false,
             height: 1.6,
-
-            _inventory: Inventory::new(),
+            inventory: Inventory::new(),
         }
     }
 
@@ -41,12 +40,12 @@ impl Player {
         let forward = normalize(&Vector3::new(self.camera.forward.x, 0.0, self.camera.forward.z));
         let delta = delta_time * Vector3 {
             x: (self.move_speed * self.camera.right.x * self.direction.x as f32) + (self.move_speed * forward.x * self.direction.z as f32),
-            y: self.move_speed * self.direction.y as f32,
+            y: 1.5 * self.move_speed * self.direction.y as f32,
             z: (self.move_speed * self.camera.right.z * self.direction.x as f32) + (self.move_speed * forward.z * self.direction.z as f32),
         };
 
 
-        let collision_box_dimensions = (0.25, 1.8);
+        let collision_box_dimensions = (0.5, 1.8);
 
         self.position.x += delta.x;
         let mut player_bounding_box = collision::Rect3 {

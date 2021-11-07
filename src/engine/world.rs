@@ -1,7 +1,7 @@
 use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader}};
+use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader, vertex}};
 use crate::graphics::mesh::{Mesh, Texture};
 
 use noise::{Perlin, NoiseFn, Seedable};
@@ -11,8 +11,6 @@ pub const CHUNK_SIZE: usize = 16;
 pub struct Chunk {
     blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     block_mesh: Option<Mesh>,
-    grass_mesh: Option<Mesh>,
-    leaves_mesh: Option<Mesh>,
     model_matrix: Matrix4<f32>,
 }
 
@@ -21,8 +19,6 @@ impl Chunk {
         Self {
             blocks,
             block_mesh: None,
-            grass_mesh: None,
-            leaves_mesh: None,
             model_matrix: Matrix4::from_translation(Vector3::new(position.x as f32, position.y as f32, position.z as f32)),
         }
     }
@@ -40,13 +36,11 @@ pub struct World {
     noise_scale: f64,
     perlin: Perlin,
     texture: Texture,
-    pub(crate) block_shader: Shader,
-    pub(crate) grass_shader: Shader,
-    pub(crate) leaves_shader: Shader,
+    pub(crate) world_shader: Shader,
 }
 
 impl World {
-    pub fn new(texture: Texture, block_shader: Shader, grass_shader: Shader, leaves_shader: Shader, seed: u32) -> Self {
+    pub fn new(texture: Texture, world_shader: Shader, seed: u32) -> Self {
         let noise_scale = 0.02;
         let noise_offset = Vector2::new(
             1_000_000.0 * rand::random::<f64>() + 3_141_592.0,
@@ -63,9 +57,7 @@ impl World {
             noise_scale,
             perlin,
             texture,
-            block_shader,
-            grass_shader,
-            leaves_shader,
+            world_shader,
         };
         
         let chunk_radius: isize = 5;
@@ -78,7 +70,7 @@ impl World {
                     let mut cur_chunk = Chunk::from_blocks(chunk_data, 16 * chunk_index);
                     
                     world.gen_terrain(&chunk_index, &mut cur_chunk);
-                    //world.gen_caves(&chunk_index, &mut cur_chunk);
+                    world.gen_caves(&chunk_index, &mut cur_chunk);
                     world.chunks.insert(chunk_index, cur_chunk);
                 }
             }
@@ -297,54 +289,20 @@ impl World {
         
     }*/
 
-    pub fn render_solid(&self, _player_position: Vector3<f32>, _player_direction: Vector3<f32>) {
+    pub fn render_world(&self, _player_position: Vector3<f32>, _player_direction: Vector3<f32>) {
         unsafe {
-            gl::Enable(gl::CULL_FACE);
+            //gl::Enable(gl::CULL_FACE);
             for (_position, chunk) in &self.chunks {
                 //chunk.render(self.shader);
-                if let Some(m) = &chunk.block_mesh {
-                    self.block_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                    m.draw(&self.block_shader);
-                }
+                /*if let Some(m) = &chunk.block_mesh {
+                    self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
+                    m.draw(&self.world_shader);
+                }*/
+                self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
+                chunk.block_mesh.as_ref().unwrap().draw(&self.world_shader);
             }
         }
     }
-
-    pub fn render_grass(&self) {
-        unsafe {
-            gl::Disable(gl::CULL_FACE);
-            for (_position, chunk) in &self.chunks {
-                if let Some(m) = &chunk.grass_mesh {
-                    self.grass_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                    m.draw(&self.grass_shader);
-                }
-            }
-        }
-    }
-
-    pub fn render_leaves(&self) {
-        unsafe {
-            gl::Disable(gl::CULL_FACE);
-            for (_position, chunk) in &self.chunks {
-                if let Some(m) = &chunk.leaves_mesh {
-                    self.leaves_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                    m.draw(&self.leaves_shader);
-                }
-            }
-        }
-    }
-
-    /*pub unsafe fn render(&self, shader: &Shader) {
-        shader.set_mat4(c_str!("model_matrix"), &self.model_matrix);
-        if let Some(m) = &self.solid_mesh {
-            //gl::Enable(gl::CULL_FACE);
-            m.draw();
-        }
-        if let Some(m) = &self.transparent_mesh {
-            //gl::Disable(gl::CULL_FACE);
-            m.draw();
-        }
-    } */
 
     fn chunk_and_block_index(world_pos: &Vector3<isize>) -> (Vector3<isize>, Vector3<usize>) {
         let chunk_index = Vector3 {
@@ -366,6 +324,8 @@ impl World {
             //chunk.destroy_at_chunk_pos(block_index);
             chunk.blocks[block_index.x][block_index.y][block_index.z] = 0;
             self.gen_chunk_mesh(&chunk_index);
+            
+            /*
             if block_index.x == 0 {
                 let adjacent_chunk_index = chunk_index - Vector3::new(1, 0, 0);
                 if let Some(_) = self.chunks.get(&adjacent_chunk_index) {
@@ -401,6 +361,7 @@ impl World {
                     self.gen_chunk_mesh(&adjacent_chunk_index);
                 }
             }
+            */
         }
     }
 
@@ -463,8 +424,6 @@ impl World {
 
     pub fn gen_chunk_mesh(&mut self, chunk_index: &Vector3<isize>) {
         let mut block_vertices = Vec::new();
-        let mut grass_vertices = Vec::new();
-        let mut leaves_vertices = Vec::new();
 
         if let Some(current_chunk) = self.chunks.get(chunk_index) {
             for x in 0..CHUNK_SIZE {
@@ -506,21 +465,9 @@ impl World {
                         };
 
                         let position = [x as f32, y as f32, z as f32];
-                        let cur_vertices = match cur.block_type {
-                            block::BlockType::Block => {
-                                &mut block_vertices
-                            },
-                            block::BlockType::Grass => {
-                                &mut grass_vertices
-                            },
-                            block::BlockType::Leaves => {
-                                &mut leaves_vertices
-                            }
-                            _ => &mut block_vertices,
-                        };
+                        let vertex_type = cur.block_type as i32;
                         match cur.mesh_type {
                             MeshType::Block => {
-                                
                                 let x_right_adjacent = if x < 15 {
                                     Some(BLOCKS[current_chunk.block_at_chunk_pos(&Vector3::new(x+1, y, z))])
                                 } else if let Some(chunk) = self.chunks.get(&(*chunk_index + Vector3::new(1isize, 0, 0))) {
@@ -530,7 +477,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = x_right_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        meshgen::push_face(&position, 0, cur_vertices, &tex_coords[0]);
+                                        meshgen::push_face(&position, 0, &mut block_vertices, &tex_coords[0], vertex_type);
                                     }
                                 }
 
@@ -543,7 +490,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = x_left_adjacent {
                                     if adjacent_block.transparent {
-                                        meshgen::push_face(&position, 1, cur_vertices, &tex_coords[1]);
+                                        meshgen::push_face(&position, 1, &mut block_vertices, &tex_coords[1], vertex_type);
                                     }
                                 }
 
@@ -557,7 +504,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = y_top_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        meshgen::push_face(&position, 2, cur_vertices, &tex_coords[2]);
+                                        meshgen::push_face(&position, 2, &mut block_vertices, &tex_coords[2], vertex_type);
                                     }
                                 }
         
@@ -570,7 +517,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = y_bottom_adjacent {
                                     if adjacent_block.transparent {
-                                        meshgen::push_face(&position, 3, cur_vertices, &tex_coords[3]);
+                                        meshgen::push_face(&position, 3, &mut block_vertices, &tex_coords[3], vertex_type);
                                     }
                                 }
 
@@ -583,7 +530,7 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = z_back_adjacent {
                                     if adjacent_block.transparent && adjacent_block.id != cur.id {
-                                        meshgen::push_face(&position, 4, cur_vertices, &tex_coords[4]);
+                                        meshgen::push_face(&position, 4, &mut block_vertices, &tex_coords[4], vertex_type);
                                     }
                                 }
 
@@ -597,21 +544,24 @@ impl World {
                                 };
                                 if let Some(adjacent_block) = z_front_adjacent {
                                     if adjacent_block.transparent {
-                                        meshgen::push_face(&position, 5, cur_vertices, &tex_coords[5]);
+                                        meshgen::push_face(&position, 5, &mut block_vertices, &tex_coords[5], vertex_type);
                                     }
                                 }
                             }
                             MeshType::CrossedPlanes => {
-                                meshgen::push_face(&position, 6, cur_vertices, &tex_coords[0]);
-                                //push_face(&position, 7, &mut transparent_vertices, &tex_coords[0]);
-                                meshgen::push_face(&position, 8, cur_vertices, &tex_coords[0]);
-                                //push_face(&position, 9, &mut transparent_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 6, &mut block_vertices, &tex_coords[0], vertex_type);
+                                //meshgen::push_face(&position, 7, &mut block_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 8, &mut block_vertices, &tex_coords[0], vertex_type);
+                                //meshgen::push_face(&position, 9, &mut block_vertices, &tex_coords[0]);
                             }
                         }
                         
                     }
                 }
             }
+            //let mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
+            //current_chunk.block_mesh = Some(mesh);
+            
         } else {
             return;
         }
@@ -621,12 +571,11 @@ impl World {
         });*/
 
         if let Some(chunk) = self.chunks.get_mut(chunk_index) {
-            let solid_mesh = Mesh::new(block_vertices, &self.texture, &self.block_shader);
-            let grass_mesh = Mesh::new(grass_vertices, &self.texture, &self.grass_shader);
-            let leaves_mesh = Mesh::new(leaves_vertices, &self.texture, &self.leaves_shader);
-            chunk.block_mesh = Some(solid_mesh);
-            chunk.grass_mesh = Some(grass_mesh);
-            chunk.leaves_mesh = Some(leaves_mesh);
+            if let Some(mesh) = chunk.block_mesh.as_mut() {
+                mesh.setup_mesh(&self.world_shader);
+            } else {
+                chunk.block_mesh = Some(Mesh::new(block_vertices, &self.texture, &self.world_shader));
+            }
         }
     }
 }
