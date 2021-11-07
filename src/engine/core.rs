@@ -4,6 +4,7 @@ use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics
 
 use super::{player::Player, world::World};
 
+#[derive(PartialEq, Eq)]
 enum EngineState {
     Running,
     Paused,
@@ -28,14 +29,33 @@ pub(crate) static mut ENGINE: Engine = Engine {
 
 impl Engine {
 
-    pub fn start_engine(&mut self, start_time: i64) {
-        
-        
-        let block_shader = Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
-        let grass_shader = Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
-        let leaves_shader = Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl"));
+    pub fn start_engine(&mut self) -> Result<(), String> {
+        gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
+        unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+            
+            gl::Enable(gl::CULL_FACE);
+            gl::CullFace(gl::BACK);
+            gl::FrontFace(gl::CW);
     
-        let _gui_shader = Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl"));
+            gl::Enable(gl::BLEND);
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        }
+
+
+        let block_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
+            Ok(shader) => shader,
+            Err(error) => return Err(error),
+        };
+        let grass_shader = match Shader::new(include_str!("../../shaders/grass_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
+            Ok(shader) => shader,
+            Err(error) => return Err(error),
+        };
+        let leaves_shader = match Shader::new(include_str!("../../shaders/leaves_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
+            Ok(shader) => shader,
+            Err(error) => return Err(error),
+        };
+        //let _gui_shader = Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl"));
 
         let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
         let seed = rand::random();
@@ -48,29 +68,28 @@ impl Engine {
         ));
         self.player = Some(player::Player::new(Vector3::new(5.0, 65.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
 
-        self.state = EngineState::Running;
-        self.elapsed_time = start_time;
+        self.state = EngineState::Paused;
+        Ok(())
     }
 
     pub fn tick(&mut self, elapsed_time: i64) {
-        let delta_time = elapsed_time - self.elapsed_time;
-        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), (delta_time as f32) * 0.000000001);
-        self.elapsed_time = elapsed_time;
+        if self.state == EngineState::Running {
+            let delta_time = elapsed_time - self.elapsed_time;
+            self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), (delta_time as f32) * 0.000000001);
+            self.elapsed_time = elapsed_time;
+        }
     }
 
     pub fn render(&mut self) {
         self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.01);
+
         let elapsed_time = (self.elapsed_time as f32) * 0.000000001;
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            //solid_shader.use_program();
-            //transparent_shader.use_program();
-
-            let projection: Matrix4<f32> = perspective_matrix();//cgmath::perspective(cgmath::Deg(90.0), WIDTH as f32 / HEIGHT as f32, 0.1, 100.0);
+            let projection: Matrix4<f32> = perspective_matrix();
             let view = self.player.as_ref().unwrap().camera.view_matrix();
-            //let model = Matrix4::from_scale(1.0);
 
             if let Some(world) = self.world.as_mut() {
                 let block_shader = &mut world.block_shader;
@@ -97,24 +116,16 @@ impl Engine {
                 leaves_shader.set_float(c_str!("time"), elapsed_time);
                 world.render_leaves();
 
+                /*gui_shader.use_program();
+                gui_shader.set_float(c_str!("selected"), (player.inventory.selected % 10) as f32);
+                gui_mesh.draw(&gui_shader);*/
+
+                //gl::Disable(gl::CULL_FACE);
+                //block_icon_shader.use_program();
+                //block_icon_mesh.draw(&block_icon_shader);
+                //gl::Enable(gl::CULL_FACE);
+
             }
-
-            /*gui_shader.use_program();
-            gui_shader.set_float(c_str!("selected"), (player.inventory.selected % 10) as f32);
-            gui_mesh.draw(&gui_shader);*/
-
-            //gl::Disable(gl::CULL_FACE);
-            //block_icon_shader.use_program();
-            //block_icon_mesh.draw(&block_icon_shader);
-            //gl::Enable(gl::CULL_FACE);
-
-            //let cursor_projection: Matrix4<f32> = perspective_matrix();//cgmath::perspective(cgmath::Deg(90.0), WIDTH as f32 / HEIGHT as f32, 0.1, 100.0);
-            //let view = player.camera.view_matrix();
-            /*let cursor_model = Matrix4::from_translation(cursor_position);
-            world_shader.set_mat4(c_str!("model_matrix"), &cursor_model);
-
-            cursor_cube_mesh.draw();*/
-
         }
     }
 

@@ -1,6 +1,8 @@
 use cgmath::Vector3;
 
-use crate::engine::{block::BLOCKS, camera::Camera, collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize}, world::World};
+use crate::engine::{block::BLOCKS, camera::Camera, world::World};
+use crate::physics::collision;
+use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize}};
 use crate::engine::inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -4.0, z: 0.0};
@@ -47,7 +49,7 @@ impl Player {
         let collision_box_dimensions = (0.25, 1.8);
 
         self.position.x += delta.x;
-        let mut player_bounding_box = crate::engine::collision::Rect3 {
+        let mut player_bounding_box = collision::Rect3 {
             pos: Vector3::new(
                 self.position.x - (collision_box_dimensions.0/2.0),
                 self.position.y,
@@ -64,7 +66,7 @@ impl Player {
                     if !BLOCKS[world.block_at_global_pos(Vector3::new(block_x, block_y, block_z))].solid {
                         continue;
                     }
-                    let block_bounding_box = crate::engine::collision::Rect3 {
+                    let block_bounding_box = collision::Rect3 {
                         pos: Vector3::new(block_x as f32, block_y as f32, block_z as f32),
                         size: Vector3::new(1.0, 1.0, 1.0)
                     };
@@ -82,7 +84,7 @@ impl Player {
         }
 
         self.position.y += delta.y;
-        player_bounding_box = crate::engine::collision::Rect3 {
+        player_bounding_box = collision::Rect3 {
             pos: Vector3::new(
                 self.position.x - (collision_box_dimensions.0/2.0),
                 self.position.y,
@@ -99,7 +101,7 @@ impl Player {
                     if !BLOCKS[world.block_at_global_pos(Vector3::new(block_x, block_y, block_z))].solid {
                         continue;
                     }
-                    let block_bounding_box = crate::engine::collision::Rect3 {
+                    let block_bounding_box = collision::Rect3 {
                         pos: Vector3::new(block_x as f32, block_y as f32, block_z as f32),
                         size: Vector3::new(1.0, 1.0, 1.0)
                     };
@@ -118,7 +120,7 @@ impl Player {
         }
 
         self.position.z += delta.z;
-        player_bounding_box = crate::engine::collision::Rect3 {
+        player_bounding_box = collision::Rect3 {
             pos: Vector3::new(
                 self.position.x - (collision_box_dimensions.0/2.0),
                 self.position.y,
@@ -135,7 +137,7 @@ impl Player {
                     if !BLOCKS[world.block_at_global_pos(Vector3::new(block_x, block_y, block_z))].solid {
                         continue;
                     }
-                    let block_bounding_box = crate::engine::collision::Rect3 {
+                    let block_bounding_box = collision::Rect3 {
                         pos: Vector3::new(block_x as f32, block_y as f32, block_z as f32),
                         size: Vector3::new(1.0, 1.0, 1.0)
                     };

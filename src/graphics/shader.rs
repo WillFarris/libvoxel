@@ -7,7 +7,7 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn new(vertex_str: &str, fragment_str: &str) -> Self {
+    pub fn new(vertex_str: &str, fragment_str: &str) -> Result<Self, String> {
 
         let mut shader_program: Shader = Shader { id: 0u32 };
         unsafe {
@@ -26,7 +26,7 @@ impl Shader {
             gl::GetShaderiv(vertex_shader, gl::COMPILE_STATUS, &mut success);
             if success != gl::TRUE as gl::types::GLint {
                 gl::GetProgramInfoLog(vertex_shader, 512, ptr::null_mut(), info_log.as_mut_ptr() as *mut gl::types::GLchar);
-                println!("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}", std::str::from_utf8(&info_log).unwrap());
+                return Err(String::from(std::str::from_utf8(&info_log).unwrap()));          
             }
     
             // fragment shader
@@ -38,7 +38,7 @@ impl Shader {
             gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
             if success != gl::TRUE as gl::types::GLint {
                 gl::GetProgramInfoLog(fragment_shader, 512, ptr::null_mut(), info_log.as_mut_ptr() as *mut gl::types::GLchar);
-                println!("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}", std::str::from_utf8(&info_log).unwrap());
+                return Err(String::from(std::str::from_utf8(&info_log).unwrap())); 
             }
     
             // link shaders
@@ -50,13 +50,13 @@ impl Shader {
             gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
             if success != gl::TRUE as gl::types::GLint {
                 gl::GetProgramInfoLog(program_id, 512, ptr::null_mut(), info_log.as_mut_ptr() as *mut gl::types::GLchar);
-                println!("ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}", std::str::from_utf8(&info_log).unwrap());
+                return Err(String::from(std::str::from_utf8(&info_log).unwrap())); 
             }
             gl::DeleteShader(vertex_shader);
             gl::DeleteShader(fragment_shader);
             shader_program.id = program_id;
         }
-        shader_program
+        Ok(shader_program)
     }
 
     pub fn set_mat4(&self, name: &CStr, mat: &Matrix4<f32>) {

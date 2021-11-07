@@ -48,8 +48,16 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEn
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(_env: JNIEnv, _gl: jobject, _config: jobject, start_time: jlong) {
-    ENGINE.start_engine(start_time);
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(env: JNIEnv, _gl: jobject, _config: jobject, start_time: jlong) -> jstring {
+    let result = ENGINE.start_engine();
+    
+    
+    if let Err(error) = result {
+        let world_ptr = CString::new(error.as_str()).unwrap();
+        let output = env.new_string(world_ptr.to_str().unwrap()).expect("Couldn't create java string!");
+        return output.into_inner()
+    }
+    env.new_string("from").expect("Couldn't create string").into_inner()
 }
 
 #[no_mangle]
@@ -57,6 +65,6 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCh
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject, _elapsed_time: jfloat) {
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject) {
     ENGINE.render();
 }

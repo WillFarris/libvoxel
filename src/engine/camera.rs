@@ -1,7 +1,6 @@
-use crate::engine::vectormath::*;
 use cgmath::{Matrix4, Vector3, Vector4};
 
-use super::vectormath::normalize;
+use crate::physics::vectormath::{Y_VECTOR, cross, normalize, normalize_inplace};
 
 
 pub struct Camera {
@@ -68,12 +67,12 @@ impl Camera {
     }
 
     pub fn rotate_on_y_axis(&mut self, angle: f32) {
-        self.forward = crate::engine::vectormath::quaternion_rotate(&self.forward, angle, &self.up);
+        self.forward = crate::physics::vectormath::quaternion_rotate(&self.forward, angle, &self.up);
         self.calculate_normals();
     }
 
     pub fn rotate_on_x_axis(&mut self, angle: f32) {
-        self.forward = crate::engine::vectormath::quaternion_rotate(&self.forward, angle, &self.right);
+        self.forward = crate::physics::vectormath::quaternion_rotate(&self.forward, angle, &self.right);
         self.calculate_normals();
     }
 }
