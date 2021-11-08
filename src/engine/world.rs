@@ -63,24 +63,17 @@ impl World {
             world_shader,
         };
         
-        let chunk_radius: isize = 1;
+        let chunk_radius: isize = 3;
         for chunk_x in -chunk_radius..chunk_radius {
             for chunk_y in 0..chunk_radius {
                 for chunk_z in -chunk_radius..chunk_radius {
                     let chunk_index = Vector3::new(chunk_x, chunk_y, chunk_z);
-                    let mut chunk_data: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE] = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
-                        for x in 0..16 {
-                            for z in 0..16 {
-                                chunk_data[x][0][z] = 1;
-                                chunk_data[x][1][z] = 2;
-                            }
-                        }   
-                    
+                    let chunk_data: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE] = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
                     let mut cur_chunk = Chunk::from_blocks(chunk_data, 16 * chunk_index);
                     
-                    //world.gen_terrain(&chunk_index, &mut cur_chunk);
-                    //world.gen_caves(&chunk_index, &mut cur_chunk);
+                    world.gen_terrain(&chunk_index, &mut cur_chunk);
+                    world.gen_caves(&chunk_index, &mut cur_chunk);
                     world.chunks.insert(chunk_index, cur_chunk);
                 }
             }
@@ -127,6 +120,7 @@ impl World {
                         } else if (global_y as f64) < (7.0 * surface_y/8.0).floor() {
                             match rand::random::<usize>()%100 {
                                 0 => chunk.blocks[block_x][block_y][block_z] = 14,
+                                1..=3 => chunk.blocks[block_x][block_y][block_z] = 15,
                                 _ => chunk.blocks[block_x][block_y][block_z] = 1,
                             }                            
                         } else {
@@ -150,7 +144,7 @@ impl World {
         match rand::random::<usize>()%100 {
             50..=99 => {
                 let mut block_id = rand::random::<usize>()%10;
-                if block_id <= 6 { block_id = 12 } else if block_id <= 8 {block_id = 13} else {block_id = 10};
+                if block_id <= 6 { block_id = 12 } else if block_id <= 7 {block_id = 13} else if block_id <= 8 {block_id = 7} else {block_id = 10};
 
                 let (position, block_index) = World::chunk_and_block_index(&Vector3::new(x, y, z));
                 if let Some(chunk) = self.chunks.get_mut(&position) {
@@ -263,7 +257,7 @@ impl World {
     fn surface_noise(&self, global_x: f64, global_z: f64) -> f64 {
         5.0 * self.perlin.get([self.noise_scale * global_x + self.noise_offset.x, self.noise_scale * global_z + self.noise_offset.y])
                             //+ (50.0 * self.perlin.get([0.1 * noise_scale * self.noise_offset.x - 100.0, self.noise_offset.y - 44310.0]) + 3.0)
-                            + 5.1
+                            + 10.1
     }
 
     pub fn render_world(&self, _player_position: Vector3<f32>, _player_direction: Vector3<f32>) {

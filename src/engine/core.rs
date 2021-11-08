@@ -76,7 +76,7 @@ impl Engine {
             world_shader,
             seed
         ));
-        self.player = Some(player::Player::new(Vector3::new(5.0, 10.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
+        self.player = Some(player::Player::new(Vector3::new(5.0, 45.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(gui_shader, Texture {id: crosshair_texture_id}));
 
         self.state = EngineState::Paused;
@@ -96,7 +96,7 @@ impl Engine {
             self.break_block();
             self.should_break_block = false;
         }
-        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), (elapsed_time - self.elapsed_time));
+        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.02);
 
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);
