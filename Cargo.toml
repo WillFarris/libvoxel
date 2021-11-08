@@ -6,15 +6,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-[target.'cfg(target_os="android")'.dependencies]
 gl = "*"
 egli = "0.5.0"
-jni = { version = "0.5", default-features = false }
-# android-ndk = "*"
 image = "*"
 cgmath = "*"
 rand = "0.7.3"
 noise = "0.7.0"
+[target.'cfg(target_os="android")'.dependencies]
+jni = { version = "0.5", default-features = false }
+android_log = "*"
+log = "*"
+
 
 [lib]
 name = "voxel"

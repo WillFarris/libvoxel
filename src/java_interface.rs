@@ -41,7 +41,8 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_stopMoving(_env:
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env: JNIEnv) {
-    ENGINE.break_block();
+    //ENGINE.break_block();
+    ENGINE.should_break_block = true;
 }
 
 #[no_mangle]
@@ -54,8 +55,8 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEn
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(env: JNIEnv, _gl: jobject, _config: jobject, start_time: jlong) -> jstring {
+    ENGINE.gl_setup(2560, 1440).unwrap();
     let result = ENGINE.start_engine();
-    
     
     if let Err(error) = result {
         let world_ptr = CString::new(error.as_str()).unwrap();
@@ -66,7 +67,8 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCr
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceChanged(_env: JNIEnv, _width: jint, _height: jint) {
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceChanged(_env: JNIEnv, width: jint, height: jint) {
+    
 }
 
 #[no_mangle]

@@ -77,8 +77,7 @@ impl Camera {
     }
 }
 
-pub fn perspective_matrix() -> Matrix4<f32> {
-    let (width, height) = (2560, 1440);
+pub fn perspective_matrix(width: i32, height: i32) -> Matrix4<f32> {
     let aspect_ratio = height as f32 / width as f32;
 
     let fov: f32 = 3.141592 / 2.0;

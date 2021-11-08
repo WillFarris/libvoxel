@@ -2,7 +2,6 @@
 
 precision mediump float;
 
-in flat float v_kind;
 in vec3 v_normal;
 in vec3 v_position;
 in vec2 v_tex_coords;

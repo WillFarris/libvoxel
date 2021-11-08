@@ -3,3 +3,4 @@ pub(crate) mod setup;
 pub(crate) mod shader;
 pub(crate) mod vertex;
 pub(crate) mod meshgen;
+pub(crate) mod gui;

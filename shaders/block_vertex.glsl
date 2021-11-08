@@ -16,7 +16,6 @@ uniform float time;
 out vec3 v_normal;
 out vec3 v_position;
 out vec2 v_tex_coords;
-out flat float v_kind;
 
 #define WIND_SPEED 5.0
 
@@ -34,7 +33,6 @@ void main() {
     v_position = pos4_new.xyz;
     v_normal = transpose(inverse(mat3(model_matrix))) * normal;
     v_tex_coords = tex_coords;
-    v_kind = float(vtype);
 
     gl_Position = pos4_new;
 }

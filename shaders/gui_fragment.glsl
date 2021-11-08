@@ -8,6 +8,7 @@ in vec3 v_position;
 in vec2 v_tex_coords;
 
 uniform float selected;
+uniform mat4 perspective_matrix;
 uniform sampler2D texture_map;
 
 out vec4 color;

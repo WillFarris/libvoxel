@@ -6,8 +6,11 @@ use crate::graphics::mesh::{Mesh, Texture};
 
 use noise::{Perlin, NoiseFn, Seedable};
 
+extern  crate android_log;
+
 pub const CHUNK_SIZE: usize = 16;
 
+#[derive(Debug)]
 pub struct Chunk {
     blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     block_mesh: Option<Mesh>,
@@ -60,17 +63,24 @@ impl World {
             world_shader,
         };
         
-        let chunk_radius: isize = 5;
+        let chunk_radius: isize = 1;
         for chunk_x in -chunk_radius..chunk_radius {
             for chunk_y in 0..chunk_radius {
                 for chunk_z in -chunk_radius..chunk_radius {
                     let chunk_index = Vector3::new(chunk_x, chunk_y, chunk_z);
-                    let chunk_data: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE] = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+                    let mut chunk_data: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE] = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+                        for x in 0..16 {
+                            for z in 0..16 {
+                                chunk_data[x][0][z] = 1;
+                                chunk_data[x][1][z] = 2;
+                            }
+                        }   
+                    
 
                     let mut cur_chunk = Chunk::from_blocks(chunk_data, 16 * chunk_index);
                     
-                    world.gen_terrain(&chunk_index, &mut cur_chunk);
-                    world.gen_caves(&chunk_index, &mut cur_chunk);
+                    //world.gen_terrain(&chunk_index, &mut cur_chunk);
+                    //world.gen_caves(&chunk_index, &mut cur_chunk);
                     world.chunks.insert(chunk_index, cur_chunk);
                 }
             }
@@ -88,7 +98,7 @@ impl World {
         });
 
         let mut positions = Vec::new();
-        for (position, chunk_option) in &world.chunks {
+        for (position, _chunk) in &world.chunks {
             positions.push(position.clone());
         }
         for position in positions {
@@ -253,53 +263,16 @@ impl World {
     fn surface_noise(&self, global_x: f64, global_z: f64) -> f64 {
         5.0 * self.perlin.get([self.noise_scale * global_x + self.noise_offset.x, self.noise_scale * global_z + self.noise_offset.y])
                             //+ (50.0 * self.perlin.get([0.1 * noise_scale * self.noise_offset.x - 100.0, self.noise_offset.y - 44310.0]) + 3.0)
-                            + 55.1
+                            + 5.1
     }
-
-    /*pub fn update_chunks(&mut self, player_position_global: Vector3<f32>) {
-        let render_distance = 2;
-        let player_block_index = Vector3::new(
-            player_position_global.x.floor() as isize / 16,
-            player_position_global.y.floor() as isize / 16,
-            player_position_global.z.floor() as isize / 16,
-        );
-
-        for x in (player_block_index.x - render_distance)..=(player_block_index.x+render_distance) {
-            for y in (player_block_index.x - render_distance)..=(player_block_index.x+render_distance) {
-                for z in (player_block_index.x - render_distance)..=(player_block_index.x+render_distance) {
-                    if let Some(_) = self.chunks.get(&Vector3::new(x, y, z)) {
-                        continue;
-                    } else {
-                        self.gen_chunk(x, y, z);
-                        self.gen_chunk_mesh(&Vector3::new(x, y, z));
-                    }
-                }
-            }
-        }
-
-        self.chunks.retain(|index, chunk| {
-               index.x >= (player_block_index.x - render_distance) &&
-               index.x <= (player_block_index.x + render_distance) &&
-               index.y >= (player_block_index.y - render_distance) &&
-               index.y <= (player_block_index.y + render_distance) && 
-               index.z >= (player_block_index.z - render_distance) &&
-               index.z <= (player_block_index.z + render_distance)
-        });
-
-        
-    }*/
 
     pub fn render_world(&self, _player_position: Vector3<f32>, _player_direction: Vector3<f32>) {
         unsafe {
-            //gl::Enable(gl::CULL_FACE);
             for (_position, chunk) in &self.chunks {
-                //chunk.render(self.shader);
-                /*if let Some(m) = &chunk.block_mesh {
+                if let Some(m) = &chunk.block_mesh {
                     self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
                     m.draw(&self.world_shader);
-                }*/
-                self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                chunk.block_mesh.as_ref().unwrap().draw(&self.world_shader);
+                }
             }
         }
     }
@@ -321,11 +294,10 @@ impl World {
     pub fn destroy_at_global_pos(&mut self, world_pos: Vector3<isize>) {
         let (chunk_index, block_index) = World::chunk_and_block_index(&world_pos);
         if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
-            //chunk.destroy_at_chunk_pos(block_index);
             chunk.blocks[block_index.x][block_index.y][block_index.z] = 0;
             self.gen_chunk_mesh(&chunk_index);
             
-            /*
+            
             if block_index.x == 0 {
                 let adjacent_chunk_index = chunk_index - Vector3::new(1, 0, 0);
                 if let Some(_) = self.chunks.get(&adjacent_chunk_index) {
@@ -361,7 +333,7 @@ impl World {
                     self.gen_chunk_mesh(&adjacent_chunk_index);
                 }
             }
-            */
+            
         }
     }
 
@@ -560,21 +532,16 @@ impl World {
                 }
             }
             //let mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
-            //current_chunk.block_mesh = Some(mesh);
-            
+            //current_chunk.block_mesh = Some(mesh); 
         } else {
             return;
         }
 
-        /*transparent_vertices.sort_by(|a, b| {
-            len(&a.position).partial_cmp(&len(&b.position)).unwrap()
-        });*/
-
-        if let Some(chunk) = self.chunks.get_mut(chunk_index) {
-            if let Some(mesh) = chunk.block_mesh.as_mut() {
-                mesh.setup_mesh(&self.world_shader);
-            } else {
-                chunk.block_mesh = Some(Mesh::new(block_vertices, &self.texture, &self.world_shader));
+        if !block_vertices.is_empty() {
+            if let Some(chunk) = self.chunks.get_mut(chunk_index) {
+                let block_mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
+                chunk.block_mesh = Some(block_mesh);
+                debug!("{:?}", chunk.block_mesh);
             }
         }
     }

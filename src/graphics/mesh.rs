@@ -6,11 +6,14 @@ use crate::offset_of;
 use gl::types::*;
 use image::{self, GenericImageView};
 
-#[derive(Clone, Copy)]
+use super::vertex::Vertex2D;
+
+#[derive(Clone, Copy, Debug)]
 pub struct Texture {
     pub id: u32,
 }
 
+#[derive(Debug)]
 pub struct Mesh {
     pub vertices: Vec<Vertex>,
     pub texture: Texture,
@@ -44,6 +47,12 @@ impl Mesh {
             gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler_str), 0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
 
+            if self.vao != 0 {
+                gl::DeleteVertexArrays(1, &mut self.vao);
+            }
+            if self.vbo != 0 {
+                gl::DeleteBuffers(1, &mut self.vbo);
+            }
             gl::GenVertexArrays(1, &mut self.vao);
             gl::GenBuffers(1, &mut self.vbo);
 
