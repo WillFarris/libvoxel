@@ -39,10 +39,10 @@ impl Engine {
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
             
-            //gl::Enable(gl::CULL_FACE);
-            //gl::CullFace(gl::BACK);
+            gl::Enable(gl::CULL_FACE);
+            gl::CullFace(gl::BACK);
             
-            gl::Disable(gl::CULL_FACE);
+            //gl::Disable(gl::CULL_FACE);
             
             gl::FrontFace(gl::CW);
     

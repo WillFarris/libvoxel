@@ -442,7 +442,7 @@ impl World {
                                     None
                                 };
                                 if let Some(adjacent_block) = x_right_adjacent {
-                                    if adjacent_block.transparent && adjacent_block.id != cur.id {
+                                    if adjacent_block.transparent {
                                         meshgen::push_face(&position, 0, &mut block_vertices, &tex_coords[0], vertex_type);
                                     }
                                 }
@@ -469,7 +469,7 @@ impl World {
                                     None
                                 };
                                 if let Some(adjacent_block) = y_top_adjacent {
-                                    if adjacent_block.transparent && adjacent_block.id != cur.id {
+                                    if adjacent_block.transparent {
                                         meshgen::push_face(&position, 2, &mut block_vertices, &tex_coords[2], vertex_type);
                                     }
                                 }
@@ -495,7 +495,7 @@ impl World {
                                     None
                                 };
                                 if let Some(adjacent_block) = z_back_adjacent {
-                                    if adjacent_block.transparent && adjacent_block.id != cur.id {
+                                    if adjacent_block.transparent {
                                         meshgen::push_face(&position, 4, &mut block_vertices, &tex_coords[4], vertex_type);
                                     }
                                 }
@@ -516,9 +516,9 @@ impl World {
                             }
                             MeshType::CrossedPlanes => {
                                 meshgen::push_face(&position, 6, &mut block_vertices, &tex_coords[0], vertex_type);
-                                //meshgen::push_face(&position, 7, &mut block_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 7, &mut block_vertices, &tex_coords[0], vertex_type);
                                 meshgen::push_face(&position, 8, &mut block_vertices, &tex_coords[0], vertex_type);
-                                //meshgen::push_face(&position, 9, &mut block_vertices, &tex_coords[0]);
+                                meshgen::push_face(&position, 9, &mut block_vertices, &tex_coords[0], vertex_type);
                             }
                         }
                         
