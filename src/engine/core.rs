@@ -1,8 +1,12 @@
+use std::sync::{Arc, Mutex};
+
 use cgmath::{Matrix4, Vector3};
 
 use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{gui::Gui, mesh::{self, Mesh, Texture}, shader::Shader}, physics::vectormath::dda};
 
 use super::{player::Player, world::World};
+
+use lazy_static::lazy_static;
 
 #[derive(PartialEq, Eq)]
 enum EngineState {
@@ -21,7 +25,20 @@ pub(crate) struct Engine {
     pub should_break_block: bool,
 }
 
-pub(crate) static mut ENGINE: Engine = Engine {
+lazy_static! {
+    pub(crate) static ref ENGINE_LOCK: Mutex<Engine> = Mutex::new(Engine {
+        dimensions: (0, 0),
+        state: EngineState::Paused,
+        world: None,
+        player: None,
+        gui: None,
+        sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
+        elapsed_time: 0.0,
+        should_break_block: false,
+    });
+}
+
+/*pub(crate) static mut ENGINE: Engine = Engine {
     dimensions: (0, 0),
     state: EngineState::Paused,
     world: None,
@@ -30,7 +47,7 @@ pub(crate) static mut ENGINE: Engine = Engine {
     sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
     elapsed_time: 0.0,
     should_break_block: false,
-};
+};*/
 
 impl Engine {
 
@@ -60,11 +77,21 @@ impl Engine {
 
         let world_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
             Ok(shader) => shader,
-            Err(error) => return Err(error),
+            Err(error) => {
+                if cfg!(target_os = "android") {
+                    debug!("{}", error);
+                }
+                return Err(error)
+            },
         };
         let gui_shader = match Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl")) {
             Ok(shader) => shader,
-            Err(error) => return Err(error),
+            Err(error) => {
+                if cfg!(target_os = "android") {
+                    debug!("{}", error);
+                }
+                return Err(error)
+            },
         };
 
         let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
@@ -79,14 +106,14 @@ impl Engine {
         self.player = Some(player::Player::new(Vector3::new(5.0, 45.0, 4.5), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(gui_shader, Texture {id: crosshair_texture_id}));
 
-        self.state = EngineState::Paused;
+        self.state = EngineState::Running;
         Ok(())
     }
 
     pub fn tick(&mut self, elapsed_time: f32) {
         if self.state == EngineState::Running {
             let delta_time = elapsed_time - self.elapsed_time;
-            self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), (delta_time as f32) * 0.000000001);
+            self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.0001);
             self.elapsed_time = elapsed_time;
         }
     }
@@ -96,7 +123,7 @@ impl Engine {
             self.break_block();
             self.should_break_block = false;
         }
-        self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.02);
+        //self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), 0.02);
 
         unsafe {          
             gl::ClearColor(0.1, 0.4, 0.95, 1.0);

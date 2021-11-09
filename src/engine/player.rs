@@ -23,7 +23,7 @@ impl Player {
         Self {
             camera: Camera::new(position, forward),
             position,
-            move_speed: 3.0,
+            move_speed: 1.4,
             direction: Vector3::new(0.0f32, 0.0f32, 0f32),
             grounded: false,
             height: 1.6,
