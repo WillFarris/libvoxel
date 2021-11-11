@@ -8,7 +8,7 @@ use cgmath::Vector3;
 use jni::sys::{jfloat, jint, jlong, jobject};
 use std::ffi::CString;
 
-use crate::{engine::core::ENGINE, physics::vectormath::dda};
+use crate::engine::core::ENGINE;
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv, _: JClass) -> jstring {
@@ -46,9 +46,9 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env:
 }
 
 #[no_mangle]
-pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEnv, elapsed_time: jlong) {
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_update(_env: JNIEnv, elapsed_time: jlong) {
     if let Some(_player) = ENGINE.player.as_ref() {
-        ENGINE.tick(elapsed_time as f32);
+        ENGINE.update(elapsed_time as f32);
     }
     
 }
@@ -56,7 +56,7 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_tick(_env: JNIEn
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(env: JNIEnv, _gl: jobject, _config: jobject, start_time: jlong) -> jstring {
     ENGINE.gl_setup(2560, 1440).unwrap();
-    let result = ENGINE.start_engine();
+    let result = ENGINE.initialize();
     
     if let Err(error) = result {
         let world_ptr = CString::new(error.as_str()).unwrap();
