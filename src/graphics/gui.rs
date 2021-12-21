@@ -16,14 +16,14 @@ const CROSSHAIR_FACE: [Vertex; 6] = [
     Vertex { position: Vector3::new( 0.15,  0.15, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(1.0, 1.0), vtype: 0  }     // Back-top-right
 ];
 
-pub(crate) struct Gui {
-    pub(crate) crosshair_mesh: Option<Mesh>,
-    pub(crate) selected_meshes: Vec<Mesh>,
-    pub(crate) gui_shader: Shader,
+pub struct Gui {
+    pub crosshair_mesh: Option<Mesh>,
+    pub selected_meshes: Vec<Mesh>,
+    pub gui_shader: Shader,
 }
 
 impl Gui {
-    pub(crate) fn new(gui_shader: Shader, texture: Texture) -> Self {
+    pub fn new(gui_shader: Shader, texture: Texture) -> Self {
         let crosshair_mesh = Mesh::new(
             CROSSHAIR_FACE.to_vec(),
             &texture,

@@ -10,7 +10,7 @@ enum EngineState {
     Paused,
 }
 
-pub(crate) struct Engine {
+pub struct Engine {
     dimensions: (i32, i32),
     state: EngineState,
     world: Option<World>,
@@ -21,7 +21,7 @@ pub(crate) struct Engine {
     pub should_break_block: bool,
 }
 
-pub(crate) static mut ENGINE: Engine = Engine {
+pub static mut ENGINE: Engine = Engine {
     dimensions: (0, 0),
     state: EngineState::Paused,
     world: None,
@@ -54,9 +54,9 @@ impl Engine {
     }
 
     pub fn start_engine(&mut self) -> Result<(), String> {
-        if cfg!(target_os = "android") {
+        /*if cfg!(target_os = "android") {
             android_log::init("VOXEL_ENGINE").unwrap();
-        }
+        }*/
 
         let world_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
             Ok(shader) => shader,

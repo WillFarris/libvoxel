@@ -1,7 +1,7 @@
-pub(crate) mod core;
-pub(crate) mod world;
-pub(crate) mod block;
-pub(crate) mod macros;
-pub(crate) mod player;
-pub(crate) mod inventory;
-pub(crate) mod camera;
+pub mod core;
+pub mod world;
+pub mod block;
+pub mod macros;
+pub mod player;
+pub mod inventory;
+pub mod camera;

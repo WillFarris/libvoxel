@@ -7,7 +7,7 @@ use crate::engine::inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -4.0, z: 0.0};
 
-pub(crate) struct Player {
+pub struct Player {
     pub camera: Camera,
     pub position: Vector3<f32>,
     move_speed: f32,

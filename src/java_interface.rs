@@ -1,3 +1,5 @@
+#![cfg(target_os = "android")]
+
 extern crate jni;
 extern crate gl;
 

@@ -6,7 +6,8 @@ use crate::graphics::mesh::{Mesh, Texture};
 
 use noise::{Perlin, NoiseFn, Seedable};
 
-extern  crate android_log;
+#[cfg(target_os = "android")]
+extern crate android_log;
 
 pub const CHUNK_SIZE: usize = 16;
 
@@ -535,7 +536,6 @@ impl World {
             if let Some(chunk) = self.chunks.get_mut(chunk_index) {
                 let block_mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
                 chunk.block_mesh = Some(block_mesh);
-                debug!("{:?}", chunk.block_mesh);
             }
         }
     }
