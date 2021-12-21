@@ -1,6 +1,6 @@
 use cgmath::{Matrix4, Vector3};
 
-use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{gui::Gui, mesh::{self, Mesh, Texture}, shader::Shader}, physics::vectormath::dda};
+use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{gui::Gui, mesh::{self, Texture}, shader::Shader}, physics::vectormath::dda};
 
 use super::{player::Player, world::World};
 
@@ -35,7 +35,10 @@ pub static mut ENGINE: Engine = Engine {
 impl Engine {
 
     pub fn gl_setup(&mut self, width: i32, height: i32) -> Result<(), String> {
-        gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
+        #[cfg(target_os = "android")] {
+            gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
+        }
+        
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
             
@@ -54,9 +57,12 @@ impl Engine {
     }
 
     pub fn initialize(&mut self) -> Result<(), String> {
-        if cfg!(target_os = "android") {
+        #[cfg(target_os = "android")] {
             android_log::init("VOXEL_ENGINE").unwrap();
         }
+
+        let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
+        let crosshair_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../crosshair.png"), image::ImageFormat::Png);
 
         let world_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
             Ok(shader) => shader,
@@ -66,9 +72,6 @@ impl Engine {
             Ok(shader) => shader,
             Err(error) => return Err(error),
         };
-
-        let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
-        let crosshair_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../crosshair.png"), image::ImageFormat::Png);
 
         let seed = rand::random();
         let chunk_radius = 5;
@@ -97,7 +100,7 @@ impl Engine {
             }
 
             let delta_time = elapsed_time - self.elapsed_time;
-            if cfg!(target_os = "android") {
+            #[cfg(target_os = "android")] {
                 debug!("dt={}", delta_time);
             }
             self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), delta_time);
