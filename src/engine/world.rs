@@ -44,7 +44,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(texture: Texture, world_shader: Shader, seed: u32) -> Self {
+    pub fn new(texture: Texture, world_shader: Shader, seed: u32, chunk_radius: isize) -> Self {
         let noise_scale = 0.02;
         let noise_offset = Vector2::new(
             1_000_000.0 * rand::random::<f64>() + 3_141_592.0,
@@ -64,7 +64,6 @@ impl World {
             world_shader,
         };
         
-        let chunk_radius: isize = 3;
         for chunk_x in -chunk_radius..chunk_radius {
             for chunk_y in 0..chunk_radius {
                 for chunk_z in -chunk_radius..chunk_radius {
