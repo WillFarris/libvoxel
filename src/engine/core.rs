@@ -81,7 +81,7 @@ impl Engine {
             seed,
             chunk_radius,
         ));
-        self.player = Some(player::Player::new(Vector3::new(5.0, (chunk_radius * 16  + 30) as f32, 4.5), Vector3::new(1.0, 0.0, 1.0)));
+        self.player = Some(player::Player::new(Vector3::new(5.0, (chunk_radius * 8  + 1) as f32, 4.5), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(gui_shader, Texture {id: crosshair_texture_id}));
 
         self.state = EngineState::Running;
