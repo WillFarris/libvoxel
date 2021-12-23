@@ -42,6 +42,13 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_stopMoving(_env:
 }
 
 #[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_playerJump(_env: JNIEnv) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.jump()
+    }
+}
+
+#[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env: JNIEnv) {
     //ENGINE.break_block();
     ENGINE.should_break_block = true;
