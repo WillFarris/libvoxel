@@ -2,17 +2,19 @@ use cgmath::Vector3;
 
 use crate::engine::{block::BLOCKS, camera::Camera, world::World};
 use crate::physics::collision;
-use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize}};
+use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize, q_rsqrt}};
 use crate::engine::inventory::Inventory;
 
-const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -4.0, z: 0.0};
+const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -0.10, z: 0.0};
 
 pub struct Player {
     pub camera: Camera,
     pub position: Vector3<f32>,
+    pub velocity: Vector3<f32>,
+    pub acceleration: Vector3<f32>,
     move_speed: f32,
-    pub direction: Vector3<f32>,
     grounded: bool,
+    walking: bool,
     height: f32,
 
     pub inventory: Inventory,
@@ -23,9 +25,11 @@ impl Player {
         Self {
             camera: Camera::new(position, forward),
             position,
+            velocity: Vector3::new(0f32, 0f32, 0f32),
+            acceleration: Vector3::new(0f32, 0f32, 0f32),
             move_speed: 3.0,
-            direction: Vector3::new(0.0f32, 0.0f32, 0f32),
             grounded: false,
+            walking: false,
             height: 1.6,
             inventory: Inventory::new(),
         }
@@ -34,14 +38,24 @@ impl Player {
     pub fn update(&mut self, world: &World, delta_time: f32) {
 
         if !self.grounded {
-            self.direction += delta_time * GRAVITY;
+            self.acceleration.y = GRAVITY.y;
+            self.velocity.y += self.acceleration.y;
+        } else {
+            self.velocity.y = 0f32;
         }
+
+        if !self.walking {
+            self.velocity.x *= 0.9;
+            self.velocity.z *= 0.9;
+        }
+
+        self.velocity += self.acceleration;
 
         let forward = normalize(&Vector3::new(self.camera.forward.x, 0.0, self.camera.forward.z));
         let delta = delta_time * Vector3 {
-            x: (self.move_speed * self.camera.right.x * self.direction.x as f32) + (self.move_speed * forward.x * self.direction.z as f32),
-            y: 1.5 * self.move_speed * self.direction.y as f32,
-            z: (self.move_speed * self.camera.right.z * self.direction.x as f32) + (self.move_speed * forward.z * self.direction.z as f32),
+            x: (self.move_speed * self.camera.right.x * self.velocity.x as f32) + (self.move_speed * forward.x * self.velocity.z as f32),
+            y: self.velocity.y as f32,
+            z: (self.move_speed * self.camera.right.z * self.velocity.x as f32) + (self.move_speed * forward.z * self.velocity.z as f32),
         };
 
 
@@ -159,24 +173,28 @@ impl Player {
             self.position.z.floor() as isize))].solid {
             self.grounded = false;
         } else {
-            self.direction.y = 0.0;
+            self.velocity.y = 0.0;
             self.grounded = true;
         }
-
         self.camera.translate(self.position + self.height * Y_VECTOR);
     }
 
     pub fn move_direction(&mut self, direction: Vector3<f32>) {
-        self.direction.x = direction.x;
-        self.direction.z = direction.z;
-        if self.grounded && direction.y != 0.0 {
-            self.direction.y = direction.y;
-            //self.grounded = false;
+        self.walking = true;
+        self.velocity.x += direction.x;
+        self.velocity.z += direction.z;
+        self.velocity.x *= q_rsqrt(self.velocity.x * self.velocity.x + self.velocity.z * self.velocity.z);
+        self.velocity.z *= q_rsqrt(self.velocity.x * self.velocity.x + self.velocity.z * self.velocity.z);
+    }
+
+    pub fn jump(&mut self) {
+        if self.grounded {
+            self.velocity.y += 10f32;
+            self.grounded = false;
         }
     }
 
     pub fn stop_move(&mut self) {
-        self.direction.x = 0.0;
-        self.direction.z = 0.0;
+        self.walking = false;
     }
 }

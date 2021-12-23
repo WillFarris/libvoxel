@@ -83,6 +83,15 @@ pub fn _quaternion_rotation_matrix(axis: &Vector3<f32>, angle: f32) -> Matrix3<f
     )
 }
 
+pub fn q_rsqrt(number: f32)  -> f32 {
+    let x2 = number * 0.5f32;
+    let threehalfs = 1.5f32;
+    let mut i: u32 = unsafe { std::mem::transmute(number) };
+    i = 0x5f375a86 - (i >> 1);
+    let mut y: f32 = unsafe {std::mem::transmute(i) };
+    y = y * ( threehalfs - (x2 * y * y ) );
+    return y;
+}
 
 pub fn len(vec: &Vector3<f32>) -> f32 {
     let len = (vec.x * vec.x + vec.y * vec.y + vec.z * vec.z).sqrt();

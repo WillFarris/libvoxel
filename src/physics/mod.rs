@@ -1,2 +1,2 @@
-pub(crate) mod collision;
-pub(crate) mod vectormath;
+pub mod collision;
+pub mod vectormath;
