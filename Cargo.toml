@@ -20,7 +20,7 @@ log = "*"
 
 [lib]
 name = "voxel"
-crate-type = ["dylib"]
+crate-type = ["dylib","lib"]
 
 [build]
 target_os = "android"

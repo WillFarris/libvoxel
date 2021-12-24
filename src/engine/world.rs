@@ -30,6 +30,26 @@ impl Chunk {
     pub fn block_at_chunk_pos(&self, chunk_index: &Vector3<usize>) -> usize {
         self.blocks[chunk_index.x][chunk_index.y][chunk_index.z]
     }
+
+    pub fn update(&mut self) {
+        for z in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for x in 0..CHUNK_SIZE {
+                    let block = self.blocks[x][y][z];
+                    if block == 0 {
+                        continue;
+                    } else if block == 13 || block == 12 || block == 10 || block == 7 {
+                        if y > 0 {
+                            let lower_block = self.blocks[x][y-1][z];
+                            if lower_block != 2 && lower_block != 3 {
+                                self.blocks[x][y][z] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub struct World {
@@ -74,6 +94,8 @@ impl World {
                     
                     world.gen_terrain(&chunk_index, &mut cur_chunk);
                     world.gen_caves(&chunk_index, &mut cur_chunk);
+                    world.gen_foliage(&chunk_index, &mut cur_chunk);
+                    world.place_enqueued();
                     world.chunks.insert(chunk_index, cur_chunk);
                 }
             }
@@ -102,10 +124,6 @@ impl World {
     }
 
     fn gen_terrain(&mut self, chunk_index: &Vector3<isize>, chunk: &mut Chunk) {
-        //let noise_scale = 0.02;
-
-        //println!("Generating terrain...");
-
         for block_x in 0..CHUNK_SIZE {
             for block_y in 0..CHUNK_SIZE {
                 for block_z in 0..CHUNK_SIZE {
@@ -116,7 +134,6 @@ impl World {
                     if (global_y as f64) < surface_y {
                         if global_y == surface_y.floor() as isize {
                             chunk.blocks[block_x][block_y][block_z] = 2;
-                            self.place_ground_foliage(global_x, global_y + 1, global_z);
                         } else if (global_y as f64) < (7.0 * surface_y/8.0).floor() {
                             match rand::random::<usize>()%100 {
                                 0 => chunk.blocks[block_x][block_y][block_z] = 14,
@@ -130,34 +147,54 @@ impl World {
                 }
             }
         }
+    }
 
-        for (position, chunk) in &mut self.chunks {
-            if let Some(queue) = self.generation_queue.get(position) {
-                for (block_pos, block_id) in queue {
-                    chunk.blocks[block_pos.x][block_pos.y][block_pos.z] = *block_id;
+    fn gen_foliage(&mut self, chunk_index: &Vector3<isize>, chunk: &mut Chunk) {
+        for block_x in 0..CHUNK_SIZE {
+            for block_y in 0..CHUNK_SIZE {
+                for block_z in 0..CHUNK_SIZE {
+                    let global_x = block_x as isize + (chunk_index.x * CHUNK_SIZE as isize);
+                    let global_y = block_y as isize + (chunk_index.y * CHUNK_SIZE as isize);
+                    let global_z = block_z as isize + (chunk_index.z * CHUNK_SIZE as isize);
+                    let surface_y = self.surface_noise(global_x as f64, global_z as f64);
+                    if (global_y as f64) < surface_y {
+                        if global_y == surface_y.floor() as isize {
+                            let (position, current_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y, global_z));
+                            if chunk.blocks[current_block_index.x][current_block_index.y][current_block_index.z] != 2 && chunk.blocks[current_block_index.x][current_block_index.y][current_block_index.z] != 3 {
+                                continue;
+                            }
+                            match rand::random::<usize>()%100 {
+                                50..=99 => {
+                                    let mut block_id = rand::random::<usize>()%10;
+                                    if block_id <= 6 { block_id = 12 } else if block_id <= 7 {block_id = 13} else if block_id <= 8 {block_id = 7} else {block_id = 10};
+                    
+                                    let (position, foliage_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y+1, global_z));
+                                    if let Some(chunk) = self.chunks.get_mut(&position) {
+                                        chunk.blocks[foliage_block_index.x][foliage_block_index.y][foliage_block_index.z] = block_id;
+                                    } else {
+                                        self.append_queued_block(block_id, &position, &foliage_block_index);
+                                    }
+                                }
+                                40 => {
+                                    self.place_tree(Vector3::new(global_x, global_y+1, global_z))
+                                }
+                                _ => {
+                    
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    fn place_ground_foliage(&mut self, x: isize, y: isize, z: isize) {
-        match rand::random::<usize>()%100 {
-            50..=99 => {
-                let mut block_id = rand::random::<usize>()%10;
-                if block_id <= 6 { block_id = 12 } else if block_id <= 7 {block_id = 13} else if block_id <= 8 {block_id = 7} else {block_id = 10};
-
-                let (position, block_index) = World::chunk_and_block_index(&Vector3::new(x, y, z));
-                if let Some(chunk) = self.chunks.get_mut(&position) {
-                    chunk.blocks[block_index.x][block_index.y][block_index.z] = block_id;
-                } else {
-                    self.append_queued_block(block_id, &position, &block_index);
+    fn place_enqueued(&mut self) {
+        for (position, chunk) in &mut self.chunks {
+            if let Some(queue) = self.generation_queue.get(position) {
+                for (block_pos, block_id) in queue {
+                    chunk.blocks[block_pos.x][block_pos.y][block_pos.z] = *block_id;
                 }
-            }
-            40 => {
-                self.place_tree(Vector3::new(x, y, z))
-            }
-            _ => {
-
             }
         }
     }
@@ -220,32 +257,9 @@ impl World {
                     } else {
                         self.append_queued_block(11, &chunk_index, &block_index);
                     }
-                    //chunk.blocks[x][y][z] = 11;
                 }
             }
         }
-
-        //
-
-        /*if block_index.x == 0 || block_index.x == CHUNK_SIZE-1 || block_index.z == 0 || block_index.z == CHUNK_SIZE-1 || block_index.y > 4 {
-            return;
-        }
-        
-        chunk.blocks[block_index.x][block_index.y][block_index.z] = 3;
-        for x in block_index.x-1..=block_index.x+1 {
-            for z in block_index.z-1..=block_index.z+1 {
-                for y in block_index.y+3..block_index.y+6 {
-                    chunk.blocks[x][y][z] = 11;
-                }
-            }
-        }
-        chunk.blocks[block_index.x-1][block_index.y+5][block_index.z-1] = 0;
-        chunk.blocks[block_index.x+1][block_index.y+5][block_index.z+1] = 0;
-        chunk.blocks[block_index.x+1][block_index.y+5][block_index.z-1] = 0;
-        chunk.blocks[block_index.x-1][block_index.y+5][block_index.z+1] = 0;
-        for y in 1..5 {
-            chunk.blocks[block_index.x][block_index.y+y][block_index.z] = 9;
-        }*/
     }
 
     pub fn chunk_from_block_array(&mut self, chunk_index: Vector3<isize>, blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]) {
@@ -289,8 +303,8 @@ impl World {
         let (chunk_index, block_index) = World::chunk_and_block_index(&world_pos);
         if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
             chunk.blocks[block_index.x][block_index.y][block_index.z] = 0;
+            chunk.update();
             self.gen_chunk_mesh(&chunk_index);
-            
             
             if block_index.x == 0 {
                 let adjacent_chunk_index = chunk_index - Vector3::new(1, 0, 0);
