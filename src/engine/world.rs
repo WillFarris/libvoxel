@@ -137,8 +137,8 @@ impl World {
                             chunk.blocks[block_x][block_y][block_z] = 2;
                         } else if (global_y as f64) < (7.0 * surface_y/8.0).floor() {
                             match rand::random::<usize>()%100 {
-                                0 => chunk.blocks[block_x][block_y][block_z] = 14,
-                                1..=3 => chunk.blocks[block_x][block_y][block_z] = 15,
+                                0 => chunk.blocks[block_x][block_y][block_z] = 15,
+                                1..=3 => chunk.blocks[block_x][block_y][block_z] = 16,
                                 _ => chunk.blocks[block_x][block_y][block_z] = 1,
                             }                            
                         } else {
