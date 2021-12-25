@@ -5,7 +5,7 @@ use crate::physics::collision;
 use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize, q_rsqrt}};
 use crate::engine::inventory::Inventory;
 
-const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -0.10, z: 0.0};
+const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
 
 pub struct Player {
     pub camera: Camera,
@@ -39,17 +39,17 @@ impl Player {
 
         if !self.grounded {
             self.acceleration.y = GRAVITY.y;
-            self.velocity.y += self.acceleration.y;
+            self.velocity.y += self.acceleration.y * delta_time;
         } else {
             self.velocity.y = 0f32;
         }
 
         if !self.walking {
-            self.velocity.x *= 0.9;
-            self.velocity.z *= 0.9;
+            self.velocity.x *= 0.9 * delta_time;
+            self.velocity.z *= 0.9 * delta_time;
         }
 
-        self.velocity += self.acceleration;
+        self.velocity += self.acceleration * delta_time;
 
         let forward = normalize(&Vector3::new(self.camera.forward.x, 0.0, self.camera.forward.z));
         let delta = delta_time * Vector3 {

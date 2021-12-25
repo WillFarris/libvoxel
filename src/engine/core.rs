@@ -56,7 +56,7 @@ impl Engine {
         Ok(())
     }
 
-    pub fn initialize(&mut self) -> Result<(), String> {
+    pub fn initialize(&mut self, seed: u32, world_radius: isize) -> Result<(), String> {
         #[cfg(target_os = "android")] {
             android_log::init("VOXEL_ENGINE").unwrap();
         }
@@ -73,15 +73,13 @@ impl Engine {
             Err(error) => return Err(error),
         };
 
-        let seed = rand::random();
-        let chunk_radius = 3;
         self.world = Some(world::World::new(
             Texture{id: terrain_texture_id}, 
             world_shader,
             seed,
-            chunk_radius,
+            world_radius,
         ));
-        self.player = Some(player::Player::new(Vector3::new(0f32, (chunk_radius * 8  + 1) as f32, 0f32), Vector3::new(1.0, 0.0, 1.0)));
+        self.player = Some(player::Player::new(Vector3::new(0f32, (world_radius * 8  + 1) as f32, 0f32), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(gui_shader, Texture {id: crosshair_texture_id}));
 
         self.state = EngineState::Running;

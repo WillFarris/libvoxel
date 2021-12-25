@@ -1,5 +1,3 @@
-use std::os::unix::prelude::OsStringExt;
-
 use cgmath::{Vector2, Vector3};
 
 use crate::graphics::{mesh::Texture, vertex::Vertex};

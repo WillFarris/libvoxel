@@ -177,6 +177,7 @@ pub fn dda(world: &world::World, start: &Vector3<f32>, dir: &Vector3<f32>, max_d
         let mut min_dist = ray_length_1d.x;
         let mut min_dir = Vec3Direction::X;
         if ray_length_1d.y < min_dist { min_dist = ray_length_1d.y; min_dir = Vec3Direction::Y }
+        #[allow(unused_assignments)]
         if ray_length_1d.z < min_dist { min_dist = ray_length_1d.z; min_dir = Vec3Direction::Z }
 
         if min_dir == Vec3Direction::X {

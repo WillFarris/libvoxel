@@ -1,4 +1,4 @@
-pub fn gl_setup() {
+pub fn _gl_setup() {
     unsafe {
         gl::load_with(|s| std::mem::transmute(egli::egl::get_proc_address(s)));
 

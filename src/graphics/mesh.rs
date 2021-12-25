@@ -1,12 +1,11 @@
 use crate::{c_str, graphics::{shader::Shader, vertex::Vertex}};
 use std::ffi::c_void;
-use std::{ffi::CString, ptr};
+use std::ptr;
 use std::mem::size_of;
 use crate::offset_of;
 use gl::types::*;
 use image::{self, GenericImageView};
 
-use super::vertex::Vertex2D;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Texture {

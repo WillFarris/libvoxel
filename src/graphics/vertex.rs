@@ -11,7 +11,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub(crate) fn postion_only(position: Vector3<f32>, tex_coords: Vector2<f32>) -> Self {
+    pub(crate) fn _postion_only(position: Vector3<f32>, tex_coords: Vector2<f32>) -> Self {
         let mut default = Self::default();
         default.position = position;
         default.tex_coords = tex_coords;

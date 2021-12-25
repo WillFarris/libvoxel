@@ -95,11 +95,12 @@ impl World {
                     world.gen_terrain(&chunk_index, &mut cur_chunk);
                     world.gen_caves(&chunk_index, &mut cur_chunk);
                     world.gen_foliage(&chunk_index, &mut cur_chunk);
-                    world.place_enqueued();
                     world.chunks.insert(chunk_index, cur_chunk);
                 }
             }
         }
+
+        world.place_enqueued();
 
         let chunks = &mut world.chunks;
         world.generation_queue.retain( |key, blocks_queue| {
@@ -159,7 +160,7 @@ impl World {
                     let surface_y = self.surface_noise(global_x as f64, global_z as f64);
                     if (global_y as f64) < surface_y {
                         if global_y == surface_y.floor() as isize {
-                            let (position, current_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y, global_z));
+                            let (_position, current_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y, global_z));
                             if chunk.blocks[current_block_index.x][current_block_index.y][current_block_index.z] != 2 && chunk.blocks[current_block_index.x][current_block_index.y][current_block_index.z] != 3 {
                                 continue;
                             }
