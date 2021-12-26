@@ -1,4 +1,4 @@
-pub const BLOCKS: [Block; 16] = [
+pub const BLOCKS: [Block; 18] = [
     Block {id: 0, name: "Air", solid: false, transparent: true, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: None },
     Block {id: 1, name: "Stone", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::Single(1.0, 15.0)) },
     Block {id: 2, name: "Grass", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::TopSideBottom((0.0, 15.0), (3.0, 15.0), (2.0, 15.0))) },
@@ -15,6 +15,8 @@ pub const BLOCKS: [Block; 16] = [
     Block {id: 13, name: "Fern", solid: false, transparent: true, block_type: BlockType::Grass, mesh_type: MeshType::CrossedPlanes, texture_map: Some(TextureType::Single(8.0, 12.0))},
     Block {id: 14, name: "Diamond Ore", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::Single(2.0, 12.0))},
     Block {id: 15, name: "Iron Ore", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::Single(1.0, 13.0))},
+    Block {id: 16, name: "Coal", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::Single(2.0, 13.0))},
+    Block {id: 17, name: "Furnace", solid: true, transparent: false, block_type: BlockType::Block, mesh_type: MeshType::Block, texture_map: Some(TextureType::ActivatableFrontSide((12.0, 13.0),(13.0, 12.0), (13.0, 13.0),(14.0, 12.0)))},
 ];
 
 #[derive(Clone, Copy)]
@@ -36,6 +38,8 @@ pub enum TextureType {
     Single(f32, f32),
     TopAndSide((f32, f32), (f32, f32)),
     TopSideBottom((f32, f32), (f32, f32), (f32, f32)),
+    ActivatableFrontSide((f32, f32), (f32, f32), (f32, f32), (f32, f32)),
+    //SixSides((f32, f32), (f32, f32), (f32, f32), (f32, f32), (f32, f32), (f32, f32)),
 }
 
 #[allow(unused)]
