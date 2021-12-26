@@ -136,7 +136,12 @@ impl World {
                     let surface_y = self.surface_noise(global_x as f64, global_z as f64);
                     if (global_y as f64) < surface_y {
                         if global_y == surface_y.floor() as isize {
-                            chunk.blocks[block_x][block_y][block_z] = 2;
+                            let block_type: u8 = rand::random::<u8>() % 5;
+                            if block_type == 0 {
+                                chunk.blocks[block_x][block_y][block_z] = 18;
+                            } else {
+                                chunk.blocks[block_x][block_y][block_z] = 19;
+                            }
                         } else if (global_y as f64) < (7.0 * surface_y/8.0).floor() {
                             match rand::random::<usize>()%100 {
                                 0 => chunk.blocks[block_x][block_y][block_z] = 16,
