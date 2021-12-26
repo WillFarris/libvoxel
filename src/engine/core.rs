@@ -13,12 +13,13 @@ enum EngineState {
 pub struct Engine {
     dimensions: (i32, i32),
     state: EngineState,
-    world: Option<World>,
+    pub world: Option<World>,
     pub player: Option<Player>,
     pub gui: Option<Gui>,
     sunlight_direction: Vector3<f32>,
     elapsed_time: f32,
     pub should_break_block: bool,
+    pub should_interact: bool,
 }
 
 pub static mut ENGINE: Engine = Engine {
@@ -30,6 +31,7 @@ pub static mut ENGINE: Engine = Engine {
     sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
     elapsed_time: 0.0,
     should_break_block: false,
+    should_interact: true,
 };
 
 impl Engine {
@@ -63,12 +65,17 @@ impl Engine {
 
         let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../terrain.png"), image::ImageFormat::Png);
         let crosshair_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../crosshair.png"), image::ImageFormat::Png);
+        let gui_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../gui.png"), image::ImageFormat::Png);
 
         let world_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
             Ok(shader) => shader,
             Err(error) => return Err(error),
         };
-        let gui_shader = match Shader::new(include_str!("../../shaders/gui_vertex.glsl"), include_str!("../../shaders/gui_fragment.glsl")) {
+        let crosshair_shader = match Shader::new(include_str!("../../shaders/crosshair_vertex.glsl"), include_str!("../../shaders/crosshair_fragment.glsl")) {
+            Ok(shader) => shader,
+            Err(error) => return Err(error),
+        };
+        let inventory_shader = match Shader::new(include_str!("../../shaders/inventory_vertex.glsl"), include_str!("../../shaders/inventory_fragment.glsl")) {
             Ok(shader) => shader,
             Err(error) => return Err(error),
         };
@@ -80,7 +87,7 @@ impl Engine {
             world_radius,
         ));
         self.player = Some(player::Player::new(Vector3::new(0f32, (world_radius * 8  + 1) as f32, 0f32), Vector3::new(1.0, 0.0, 1.0)));
-        self.gui = Some(Gui::new(gui_shader, Texture {id: crosshair_texture_id}));
+        self.gui = Some(Gui::new(crosshair_shader, Texture {id: crosshair_texture_id}, inventory_shader, Texture {id: gui_texture_id }));
 
         self.state = EngineState::Running;
         Ok(())
@@ -95,6 +102,13 @@ impl Engine {
                     self.world.as_mut().unwrap().destroy_at_global_pos(world_index);
                 }
                 self.should_break_block = false;
+            }
+
+            if self.should_interact {
+                if let Some((_, world_index)) = dda(self.world.as_ref().unwrap(), &self.player.as_ref().unwrap().camera.position, &self.player.as_ref().unwrap().camera.forward, 6.0) {
+                    self.world.as_mut().unwrap().interact_at_global_pos(world_index);
+                }
+                self.should_interact = false;
             }
 
             let delta_time = elapsed_time - self.elapsed_time;
@@ -132,12 +146,19 @@ impl Engine {
             }
 
             if let Some(gui) = self.gui.as_mut() {
-                if let Some(gui_mesh) = gui.crosshair_mesh.as_mut() {
-                    let gui_shader = &mut gui.gui_shader;
-                    gui_shader.use_program();
-                    gui_shader.set_mat4(c_str!("perspective_matrix"), &projection);
-                    gui_shader.set_float(c_str!("selected"), (player.inventory.selected % 10) as f32);
-                    gui_mesh.draw(&gui_shader);
+                if let Some(crosshair_mesh) = gui.crosshair_mesh.as_mut() {
+                    let crosshair_shader = &mut gui.crosshair_shader;
+                    crosshair_shader.use_program();
+                    crosshair_shader.set_mat4(c_str!("perspective_matrix"), &projection);
+                    crosshair_mesh.draw(&crosshair_shader);
+                }
+
+                if let Some(hotbar_mesh) = gui.hotbar_mesh.as_mut() {
+                    let hotbar_shader = &mut gui.inventory_shader;
+                    hotbar_shader.use_program();
+                    hotbar_shader.set_mat4(c_str!("perspective_matrix"), &projection);
+                    hotbar_shader.set_float(c_str!("selected"), (player.inventory.selected % 10) as f32);
+                    hotbar_mesh.draw(&hotbar_shader);
                 }
             }
         }

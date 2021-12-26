@@ -1,4 +1,4 @@
-use std::collections::{HashMap, LinkedList};
+use std::{collections::{HashMap, LinkedList}, fmt::Debug};
 
 use cgmath::{Matrix4, Vector3, Vector2};
 use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader, vertex}};
@@ -11,9 +11,9 @@ extern crate android_log;
 
 pub const CHUNK_SIZE: usize = 16;
 
-#[derive(Debug)]
 pub struct Chunk {
     blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+    metadata: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     block_mesh: Option<Mesh>,
     model_matrix: Matrix4<f32>,
 }
@@ -22,6 +22,7 @@ impl Chunk {
     pub fn from_blocks(blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE], position: Vector3<isize>) -> Self {
         Self {
             blocks,
+            metadata: [[[0usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
             block_mesh: None,
             model_matrix: Matrix4::from_translation(Vector3::new(position.x as f32, position.y as f32, position.z as f32)),
         }
@@ -300,6 +301,22 @@ impl World {
         (chunk_index, block_index)
     }
 
+    pub fn interact_at_global_pos(&mut self, world_pos: Vector3<isize>) {
+        let (chunk_index, block_index) = World::chunk_and_block_index(&world_pos);
+        if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
+            let block_id = chunk.blocks[block_index.x][block_index.y][block_index.z];
+            match block_id {
+                17 => {
+                    let state = chunk.metadata[block_index.x][block_index.y][block_index.z];
+                    chunk.metadata[block_index.x][block_index.y][block_index.z] = if state == 0 {1} else {0}
+                }
+                _ => println!("Interacted with {}", BLOCKS[block_id].name)
+            }
+            chunk.update();
+            self.gen_chunk_mesh(&chunk_index);
+        }
+    }
+
     pub fn destroy_at_global_pos(&mut self, world_pos: Vector3<isize>) {
         let (chunk_index, block_index) = World::chunk_and_block_index(&world_pos);
         if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
@@ -439,6 +456,24 @@ impl World {
                                     coords[4] = (*x_side, *y_side);
                                     coords[5] = (*x_side, *y_side);
                                 },
+                                crate::engine::block::TextureType::TopSideFrontActivatable(
+                                    (x_front_inactive, y_front_inactive),
+                                    (x_front_active, y_front_active),
+                                    (x_side, y_side),
+                                    (x_top, y_top)
+                                ) => {
+                                    coords[0] = (*x_side, *y_side);
+                                    coords[1] = (*x_side, *y_side);
+                                    coords[2] = (*x_top, *y_top);
+                                    coords[3] = (*x_top, *y_top);
+                                    coords[4] = (*x_side, *y_side);
+                                    let active = current_chunk.metadata[x][y][z] == 1;
+                                    coords[5] = if active {
+                                        (*x_front_active, *y_front_active)
+                                     } else {
+                                         (*x_front_inactive, *y_front_inactive)
+                                     };
+                                }
                             }
                             coords
                         } else {
