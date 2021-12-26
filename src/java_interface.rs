@@ -8,7 +8,7 @@ use self::jni::objects::JClass;
 use self::jni::sys::jstring;
 use cgmath::Vector3;
 use jni::sys::{jfloat, jint, jlong, jobject};
-use std::ffi::CString;
+use std::{convert::TryInto, ffi::CString};
 
 use crate::engine::core::ENGINE;
 
@@ -65,7 +65,7 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_update(_env: JNI
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCreated(env: JNIEnv, _gl: jobject, _config: jobject, seed: jint, world_radius: jint) -> jstring {
     ENGINE.gl_setup(2560, 1440).unwrap();
-    let result = ENGINE.initialize(seed as u32, world_radius as isize);
+    let result = ENGINE.initialize(seed.try_into().unwrap(), world_radius.try_into().unwrap());
     
     if let Err(error) = result {
         let world_ptr = CString::new(error.as_str()).unwrap();
