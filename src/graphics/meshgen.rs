@@ -2,7 +2,7 @@ use cgmath::{Vector2, Vector3};
 
 use super::vertex::Vertex;
 
-const CUBE_FACES: [[Vertex; 6]; 10] = [
+pub(crate) const CUBE_FACES: [[Vertex; 6]; 10] = [
     
     // Facing positive-X
     [

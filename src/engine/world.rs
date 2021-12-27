@@ -1,7 +1,7 @@
-use std::{collections::{HashMap, LinkedList}, fmt::Debug};
+use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::{c_str, engine::{block::{self, BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader, vertex}};
+use crate::{c_str, engine::{block::{BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader}};
 use crate::graphics::mesh::{Mesh, Texture};
 
 use noise::{Perlin, NoiseFn, Seedable};
@@ -54,13 +54,13 @@ impl Chunk {
 }
 
 pub struct World {
-    seed: u32,
+    _seed: u32,
     pub chunks: HashMap<Vector3<isize>, Chunk>,
     pub generation_queue: HashMap<Vector3<isize>, LinkedList<(Vector3<usize>, usize)>>,
     noise_offset: Vector2<f64>,
     noise_scale: f64,
     perlin: Perlin,
-    texture: Texture,
+    pub texture: Texture,
     pub(crate) world_shader: Shader,
 }
 
@@ -75,7 +75,7 @@ impl World {
         perlin.set_seed(seed);
 
         let mut world = Self {
-            seed,
+            _seed: seed,
             chunks: HashMap::new(),
             generation_queue: HashMap::new(),
             noise_offset,
