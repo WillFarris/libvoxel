@@ -88,12 +88,20 @@ impl Gui {
                 };
 
                 let mut vertices = crate::graphics::meshgen::CUBE_FACES[5].clone();
-                for i in 0..vertices.len() {
+                for v in 0..vertices.len() {
 
+                    let scale = 0.07;
+
+                    vertices[v].position.x *= scale;
+                    vertices[v].position.y *= scale * (16.0/9.0);
                     
-                    vertices[i].position.x = 0.1 * (i as f32);
-                    vertices[i].tex_coords.x = vertices[i].tex_coords.x * 0.0625 + 0.0625 * tex_coords.0 as f32;
-                    vertices[i].tex_coords.y = vertices[i].tex_coords.y * 0.0625 + 0.0625 * tex_coords.1 as f32;
+                    vertices[v].position.x -= 0.475;
+
+                    vertices[v].position.x += 0.11 * (i as f32);
+                    vertices[v].position.y -= 0.95;
+                    vertices[v].position.z = -1.0;
+                    vertices[v].tex_coords.x = vertices[v].tex_coords.x * 0.0625 + 0.0625 * tex_coords.0 as f32;
+                    vertices[v].tex_coords.y = vertices[v].tex_coords.y * 0.0625 + 0.0625 * tex_coords.1 as f32;
                 }
 
                 let mesh = Mesh::new(vertices.to_vec(), &terrain_texture, &self.crosshair_shader);
