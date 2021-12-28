@@ -126,8 +126,10 @@ impl Player {
                         self.position.y += y_overlap;
                         player_bounding_box.pos.y += y_overlap;
                         if y_overlap.abs() > 0.0 {
-                            self.grounded = true;
                             self.velocity.y = 0f32;
+                            if y_overlap > 0.0 {
+                                self.grounded = true;
+                            }
                         } else {
                             self.grounded = false;
                         }
