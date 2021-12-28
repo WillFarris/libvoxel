@@ -172,16 +172,6 @@ impl Player {
                 }
             }
         }
-
-        /*if !BLOCKS[world.block_at_global_pos(Vector3::new(
-            self.position.x.floor() as isize,
-            (self.position.y-0.01).floor() as isize,
-            self.position.z.floor() as isize))].solid {
-            self.grounded = false;
-        } else {
-            self.velocity.y = 0.0;
-            self.grounded = true;
-        }*/
         self.camera.translate(self.position + self.height * Y_VECTOR);
     }
 
@@ -195,7 +185,7 @@ impl Player {
 
     pub fn jump(&mut self) {
         if self.grounded {
-            self.velocity.y += 10f32;
+            self.velocity.y += 8f32;
             self.grounded = false;
         }
     }
