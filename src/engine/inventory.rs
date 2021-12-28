@@ -12,15 +12,19 @@ impl Inventory {
     }
 
     pub fn add_to_inventory(&mut self, id_to_add: usize) {
+        for i in 0..self.items.len() {
+            if let Some((id, quantity)) = &mut self.items[i] {
+                if *id == id_to_add {
+                    *quantity += 1;
+                    return;
+                }
+            }
+        }
+
         let mut first_free_index  = 0;
         for i in 0..self.items.len() {
-            if let Some((id, quantiy)) = &mut self.items[i] {
-                if *id == id_to_add {
-                    *quantiy += 1;
-                    return;
-                } else {
-                    first_free_index += 1;
-                }
+            if let Some(_item) = &self.items[i] {
+                first_free_index += 1;
             }
         }
         if first_free_index < self.items.len() {
@@ -29,24 +33,14 @@ impl Inventory {
     }
 
     pub fn consume_currently_selected(&mut self) -> Option<usize> {
-        let mut should_delete_current = false;
         if let Some((id, quantity)) = &mut self.items[self.selected] {
+            let id = *id;
             *quantity -= 1;
-            if *quantity == 0 {
-                should_delete_current = true;
-            } else {
-                return Some(*id)
+            if *quantity <= 0 {
+                self.items[self.selected] = None;
             }
-        }
-        if should_delete_current {
-            let block_id = self.items[self.selected].unwrap().0;
-            self.items[self.selected] = None;
-            return Some(block_id)
+            return Some(id)
         }
         None
     }
-
-    /*pub fn render_inventory(&self) {
-
-    }*/
 }

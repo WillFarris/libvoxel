@@ -99,14 +99,15 @@ impl Gui {
 
                     vertices[v].position.x += 0.11 * (i as f32);
                     vertices[v].position.y -= 0.95;
+
                     vertices[v].position.z = -1.0;
+
                     vertices[v].tex_coords.x = vertices[v].tex_coords.x * 0.0625 + 0.0625 * tex_coords.0 as f32;
                     vertices[v].tex_coords.y = vertices[v].tex_coords.y * 0.0625 + 0.0625 * tex_coords.1 as f32;
                 }
 
                 let mesh = Mesh::new(vertices.to_vec(), &terrain_texture, &self.crosshair_shader);
                 mesh.draw(&self.crosshair_shader);
-                println!("Drew {}", id)
             }
         }
     }
