@@ -112,17 +112,18 @@ impl Engine {
             }
 
             let delta_time = elapsed_time - self.elapsed_time;
-            #[cfg(target_os = "android")] {
+            #[cfg(target_os = "android")]
+            #[cfg(feature = "debug")]
+            {
                 debug!("dt={}", delta_time);
             }
             self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), delta_time);
             self.elapsed_time = elapsed_time;
+            self.render(elapsed_time);
         }
     }
 
     pub fn render(&mut self, elapsed_time: f32) {
-        self.update(elapsed_time);
-
         let player = match self.player.as_ref() {
             Some(player) => player,
             None => return,

@@ -55,6 +55,12 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env:
 }
 
 #[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_placeBlock(_env: JNIEnv) {
+    //ENGINE.break_block();
+    ENGINE.should_interact = true;
+}
+
+#[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_update(_env: JNIEnv, elapsed_time: jlong) {
     if let Some(_player) = ENGINE.player.as_ref() {
         ENGINE.update(elapsed_time as f32);
@@ -82,5 +88,5 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnSurfaceCh
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_voxelOnDrawFrame(_env: JNIEnv, _gl: jobject, elapsed_time: jfloat) {
-    ENGINE.render(f32::from(elapsed_time));
+    ENGINE.update(f32::from(elapsed_time));
 }
