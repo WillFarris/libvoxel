@@ -105,6 +105,10 @@ impl Engine {
             }
 
             if self.should_interact {
+                #[cfg(target_os = "android")]
+                {
+                    debug!("Interacted");
+                }
                 if let Some((_, world_index)) = dda(self.world.as_ref().unwrap(), &self.player.as_ref().unwrap().camera.position, &self.player.as_ref().unwrap().camera.forward, 6.0) {
                     self.world.as_mut().unwrap().interact_at_global_pos(world_index);
                 }
@@ -115,7 +119,7 @@ impl Engine {
             #[cfg(target_os = "android")]
             #[cfg(feature = "debug")]
             {
-                debug!("dt={}", delta_time);
+                //debug!("dt={}", delta_time);
             }
             self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), delta_time);
             self.elapsed_time = elapsed_time;

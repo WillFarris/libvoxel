@@ -61,6 +61,20 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_placeBlock(_env:
 }
 
 #[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_prevInventory(_env: JNIEnv) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.inventory.selected = std::cmp::max(player.inventory.selected - 1, 0)
+    }
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_nextInventory(_env: JNIEnv) {
+    if let Some(player) = ENGINE.player.as_mut() {
+        player.inventory.selected = std::cmp::min(player.inventory.selected + 1, 8)
+    }
+}
+
+#[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_update(_env: JNIEnv, elapsed_time: jlong) {
     if let Some(_player) = ENGINE.player.as_ref() {
         ENGINE.update(elapsed_time as f32);
