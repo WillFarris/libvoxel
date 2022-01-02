@@ -276,7 +276,7 @@ impl World {
                             + 10.1
     }
 
-    pub fn render_world(&self, _player_position: Vector3<f32>, _player_direction: Vector3<f32>) {
+    pub fn render_world(&self) {
         unsafe {
             for (_position, chunk) in &self.chunks {
                 if let Some(m) = &chunk.block_mesh {

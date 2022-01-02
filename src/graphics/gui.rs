@@ -16,13 +16,13 @@ const CROSSHAIR_FACE: [Vertex; 6] = [
 
 const ASPECT_RATIO: f32 = 16f32 / 9f32;
 const HOTBAR_FACE: [Vertex; 6] = [
-    Vertex { position: Vector3::new( -0.5,  -1.0 + (ASPECT_RATIO * 0.120879),  0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 0.9140625), vtype: 0},
-    Vertex { position: Vector3::new( 0.5, -1.0 + (ASPECT_RATIO * 0.120879), 0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 0.9140625), vtype: 0 },
-    Vertex { position: Vector3::new( 0.5,  -1.0, 0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 1.0), vtype: 0 },
+    Vertex { position: Vector3::new( -0.5,  -1.0 + (ASPECT_RATIO * 0.120879),  -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 0.9140625), vtype: 0},
+    Vertex { position: Vector3::new( 0.5, -1.0 + (ASPECT_RATIO * 0.120879), -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 0.9140625), vtype: 0 },
+    Vertex { position: Vector3::new( 0.5,  -1.0, -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 1.0), vtype: 0 },
 
-    Vertex { position: Vector3::new( -0.5, -1.0 + (ASPECT_RATIO * 0.120879),  0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 0.9140625), vtype: 0 },
-    Vertex { position: Vector3::new( 0.5, -1.0, 0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 1.0), vtype: 0 },
-    Vertex { position: Vector3::new( -0.5,  -1.0,  0.0), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 1.0), vtype: 0 },
+    Vertex { position: Vector3::new( -0.5, -1.0 + (ASPECT_RATIO * 0.120879),  -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 0.9140625), vtype: 0 },
+    Vertex { position: Vector3::new( 0.5, -1.0, -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 1.0), vtype: 0 },
+    Vertex { position: Vector3::new( -0.5,  -1.0,  -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 1.0), vtype: 0 },
 ];
 
 pub struct Gui {
