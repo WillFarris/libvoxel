@@ -1,6 +1,6 @@
 use cgmath::{Matrix4, Vector3};
 
-use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{gui::Gui, mesh::{self, Texture}, shader::Shader, self, render_texture::RenderTexture, postprocess::PostProcessMesh}, physics::vectormath::dda};
+use crate::{c_str, engine::{camera::perspective_matrix, player, world}, graphics::{gui::Gui, mesh::{self, Texture}, shader::Shader, render_texture::RenderTexture, postprocess::PostProcessMesh}, physics::vectormath::dda};
 
 use super::{player::Player, world::World};
 
@@ -55,6 +55,7 @@ impl Engine {
     pub fn gl_setup(&mut self, width: i32, height: i32) -> Result<(), String> {
         #[cfg(target_os = "android")] {
             gl::load_with(|s| unsafe { std::mem::transmute(egli::egl::get_proc_address(s)) });
+            debug!("Loaded GL pointer");
         }
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
@@ -62,30 +63,26 @@ impl Engine {
             gl::Enable(gl::CULL_FACE);
             gl::CullFace(gl::BACK);
             
-            //gl::Disable(gl::CULL_FACE);
-            
             gl::FrontFace(gl::CW);
     
             gl::Enable(gl::BLEND);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         }
         self.dimensions = (width, height);
+        #[cfg(target_os = "android")] {
+            debug!("Finished gl_setup()");
+        }
         Ok(())
     }
 
     pub fn initialize(&mut self, seed: u32, world_radius: isize) -> Result<(), String> {
-        #[cfg(target_os = "android")] {
-            android_log::init("VOXEL_ENGINE").unwrap();
-        }
-
-        unsafe {
-            gl::GetIntegerv(gl::FRAMEBUFFER_BINDING, &mut self.framebuffer_id);
-        }
-        self.render_target.init(self.dimensions.0, self.dimensions.1);
-
         let terrain_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../assets/terrain.png"), image::ImageFormat::Png);
         let crosshair_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../assets/crosshair.png"), image::ImageFormat::Png);
         let gui_texture_id = mesh::texture_from_dynamic_image_bytes(include_bytes!("../../assets/gui.png"), image::ImageFormat::Png);
+        #[cfg(target_os = "android")]
+        {
+            debug!("Created textures");
+        }
 
         let world_shader = match Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")) {
             Ok(shader) => shader,
@@ -103,9 +100,20 @@ impl Engine {
             Ok(shader) => shader,
             Err(error) => return Err(error),
         };
+        #[cfg(target_os = "android")]
+        {
+            debug!("Created shaders");
+        }
         println!("Created shaders");
 
-        
+        unsafe {
+            gl::GetIntegerv(gl::FRAMEBUFFER_BINDING, &mut self.framebuffer_id);
+        }
+        self.render_target.init(self.dimensions.0, self.dimensions.1);
+        #[cfg(target_os = "android")]
+        {
+            debug!("Created render target for postprocessing");
+        }
 
         self.world = Some(world::World::new(
             Texture{id: terrain_texture_id}, 
@@ -115,6 +123,10 @@ impl Engine {
         ));
         self.player = Some(player::Player::new(Vector3::new(0f32, (world_radius * 8  + 1) as f32, 0f32), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(crosshair_shader, Texture {id: crosshair_texture_id}, inventory_shader, Texture {id: gui_texture_id }));
+        #[cfg(target_os = "android")]
+        {
+            debug!("Created world, player, gui");
+        }
         println!("Created world, player, gui");
         
         self.postprocess_mesh.init(postprocess_shader, self.render_target.rgb_texture_id, self.dimensions);
@@ -165,15 +177,9 @@ impl Engine {
         };
 
         let perspective_matrix: Matrix4<f32> = perspective_matrix(self.dimensions.0, self.dimensions.1);
-        let view_matrix = player.camera.view_matrix();
+        let view_matrix: Matrix4<f32> = player.camera.view_matrix();
 
-        unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.render_target.framebuffer_id);
-            gl::Viewport(0, 0, self.dimensions.0, self.dimensions.1);
-            gl::ClearColor(0.05, 0.4, 0.95, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
-        //println!("Bound to framebuffer {}", self.framebuffer_id);
+        self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
         self.render_preprocess(&view_matrix, &perspective_matrix, elapsed_time);
 
 
@@ -183,21 +189,18 @@ impl Engine {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
-        //println!("Bound to framebuffer {}", self.framebuffer_id);
         self.render_postprocess(&view_matrix, &perspective_matrix, elapsed_time);
     }
 
     fn render_preprocess(&mut self, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
-        unsafe {
-            if let Some(world) = self.world.as_mut() {
-                let block_shader = &mut world.world_shader;
-                block_shader.use_program();
-                block_shader.set_mat4(c_str!("perspective_matrix"), &perspective_matrix);
-                block_shader.set_mat4(c_str!("view_matrix"), &view_matrix);
-                block_shader.set_vec3(c_str!("sunlight_direction"), &self.sunlight_direction);
-                block_shader.set_float(c_str!("time"), elapsed_time);
-                world.render_world();
-            }
+        if let Some(world) = self.world.as_mut() {
+            let block_shader = &mut world.world_shader;
+            block_shader.use_program();
+            block_shader.set_mat4(unsafe {c_str!("perspective_matrix")}, &perspective_matrix);
+            block_shader.set_mat4(unsafe {c_str!("view_matrix")}, &view_matrix);
+            block_shader.set_vec3(unsafe {c_str!("sunlight_direction")}, &self.sunlight_direction);
+            block_shader.set_float(unsafe {c_str!("time")}, elapsed_time);
+            world.render_world();
         }
     }
 

@@ -1,5 +1,3 @@
-use std::ffi::c_void;
-
 pub struct RenderTexture {
     pub(crate) framebuffer_id: u32,
     pub(crate) rgb_texture_id: u32,
@@ -9,7 +7,7 @@ pub struct RenderTexture {
 }
 
 impl RenderTexture {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn _new() -> Self {
         Self {
             framebuffer_id: 0,
             rgb_texture_id: 0,
@@ -30,6 +28,8 @@ impl RenderTexture {
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, width, height, 0, gl::RGB, gl::UNSIGNED_BYTE, 0 as *const std::ffi::c_void);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, self.rgb_texture_id, 0);
 
             // Depth buffer
@@ -50,22 +50,20 @@ impl RenderTexture {
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_COMPARE_MODE, gl::NONE as i32);
             gl::FramebufferTexture(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, self.depth_texture_id, 0);
 
-            // Configure framebuffer
-            
-            //let draw_buffers: [u32; 2] = [gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1];
-            //gl::DrawBuffers(2, &draw_buffers[0] as *const u32);
-
             if gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE {
-                //panic!("Could not setup framebuffer!")
+                panic!("Could not setup framebuffer!")
             }
         }
+        self.dimensions = (width, height);
         println!("Generated framebuffer {} with render texture {}", self.framebuffer_id, self.rgb_texture_id);
     }
 
-    pub(crate) fn set_as_target(&self) {
+    pub(crate) fn set_as_target_and_clear(&self, r: f32, g: f32, b: f32, a: f32) {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.framebuffer_id);
             gl::Viewport(0, 0, self.dimensions.0, self.dimensions.1);
+            gl::ClearColor(r, g,b, a);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
 }

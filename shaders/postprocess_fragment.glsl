@@ -10,6 +10,13 @@ uniform vec3 resolution;
 
 layout(location = 0) out vec4 color;
 
+#define zn 0.01
+#define zf 128.0
+
+float linearize_depth(float d,float zNear,float zFar)
+{
+    return zNear * zFar / (zFar + d * (zNear - zFar));
+}
 
 void main(){
     
@@ -22,7 +29,7 @@ void main(){
     float vignette = c.x * c.x + c.y * c.y;
 
     // Blur more at the edges of the screen
-    int radius = int(100.0 * vignette * vignette);
+    int radius = int(50.0 * vignette * vignette);
     vec3 blurred_color = vec3(0.0);
     float count = 0.0;
     for(int y=-radius;y<=radius;++y) {
@@ -35,14 +42,16 @@ void main(){
     }
     blurred_color /= count;
 
-    float depth = texture(depthTexture, uv).r;
+    
 
     vec4 out_color = vec4(blurred_color, 1.0);
-
-    // Darken fragment based on distance from center
     out_color *= (1.0 - 0.75 * vignette);
+    
+    float depth = linearize_depth(texture(depthTexture, uv).r,zn,zf);
+    depth /= zf;
 
-    //out_color *= min(1.0, 1.1 - depth);
+    //out_color = vec4((1.0 - depth) * out_color.rgb, out_color.a);
+    //out_color += 0.5 * vec4(depth * vec3(0.05, 0.4, 0.95), 1.0);
 
     color = out_color;
 }

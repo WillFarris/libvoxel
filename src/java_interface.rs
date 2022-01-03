@@ -20,6 +20,12 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv
 }
 
 #[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_initLogs(env: JNIEnv) {
+    android_log::init("VOXEL_ENGINE").unwrap();
+    debug!("Initialized logs");
+}
+
+#[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_lookAround(_env: JNIEnv, dx: jfloat, dy: jfloat) {
     if let Some(player) = ENGINE.player.as_mut() {
         player.camera.rotate_on_x_axis(f32::from(dy));
