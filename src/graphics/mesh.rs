@@ -37,14 +37,6 @@ impl Mesh {
             return;
         }
         unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-
-            gl::TexParameterf(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as f32);
-            gl::TexParameterf(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as f32);
-
-            let sampler_str = c_str!("texture_map").as_ptr();
-            gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler_str), 0);
-            gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
 
             if self.vao != 0 {
                 gl::DeleteVertexArrays(1, &mut self.vao);
@@ -101,14 +93,22 @@ impl Mesh {
         }
     }
 
-    pub fn draw_from_texture(&self, shader: &Shader, tex_id: u32) {
+    pub fn draw_from_texture(&self, shader: &Shader, rgb_tex_id: u32, depth_tex_id: u32) {
         unsafe {
-            let sampler = c_str!("texture_map").as_ptr();
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, rgb_tex_id);
+            let sampler = c_str!("renderTexture").as_ptr();
             gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler), 0);
-            gl::BindTexture(gl::TEXTURE_2D, tex_id);
+
+            gl::ActiveTexture(gl::TEXTURE1);
+            gl::BindTexture(gl::TEXTURE_2D, depth_tex_id);
+            let sampler = c_str!("depthTexture").as_ptr();
+            gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler), 1);
+
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
             gl::BindVertexArray(0);
+            gl::ActiveTexture(gl::TEXTURE0);
         }
     }
 }
@@ -137,8 +137,9 @@ pub fn texture_from_dynamic_image_bytes(img_bytes: &[u8], format: image::ImageFo
 
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        
     }
 
     texture_id

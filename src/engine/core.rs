@@ -38,14 +38,14 @@ pub static mut ENGINE: Engine = Engine {
     framebuffer_id: 0,
     render_target: RenderTexture {
         framebuffer_id: 0,
-        texture_id: 0,
         depthbuffer_id: 0,
         dimensions: (0, 0),
+        rgb_texture_id: 0,
+        depth_texture_id: 0,
     },
     postprocess_mesh: PostProcessMesh {
         mesh: None,
         shader: None,
-        render_texture: None,
         dimensions: (0, 0),
     }
 };
@@ -115,15 +115,9 @@ impl Engine {
         ));
         self.player = Some(player::Player::new(Vector3::new(0f32, (world_radius * 8  + 1) as f32, 0f32), Vector3::new(1.0, 0.0, 1.0)));
         self.gui = Some(Gui::new(crosshair_shader, Texture {id: crosshair_texture_id}, inventory_shader, Texture {id: gui_texture_id }));
-
-        println!("Default FB is {}", self.framebuffer_id);
+        println!("Created world, player, gui");
         
-        unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.framebuffer_id as u32);
-            gl::Viewport(0,0,self.dimensions.0,self.dimensions.1);
-        }
-        
-        self.postprocess_mesh.init(postprocess_shader, Texture {id: self.render_target.texture_id}, self.dimensions);
+        self.postprocess_mesh.init(postprocess_shader, self.render_target.rgb_texture_id, self.dimensions);
 
         self.state = EngineState::Running;
         Ok(())
@@ -208,7 +202,7 @@ impl Engine {
     }
 
     fn render_postprocess(&mut self, _view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
-        self.postprocess_mesh.render(elapsed_time, self.render_target.texture_id);
+        self.postprocess_mesh.render(elapsed_time, &self.render_target);
 
         if let Some(gui) = self.gui.as_mut() {
             let inventory = &self.player.as_ref().unwrap().inventory;
