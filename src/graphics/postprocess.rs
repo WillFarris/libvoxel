@@ -33,7 +33,7 @@ impl PostProcessMesh {
 
     }
 
-    pub(crate) fn render(&mut self, elapsed_time: f32, render_target: &RenderTexture) {
+    pub(crate) fn render(&mut self, elapsed_time: f32, render_target: &RenderTexture, camera_forward: &Vector3<f32>, camera_right: &Vector3<f32>) {
         let shader = match self.shader.as_mut() {
             Some(s) => s,
             None => return
@@ -52,6 +52,8 @@ impl PostProcessMesh {
 
             shader.set_float(crate::c_str!("time"), elapsed_time);
             shader.set_vec3(crate::c_str!("resolution"), &Vector3::new(self.dimensions.0 as f32, self.dimensions.1 as f32, 0.0));
+            shader.set_vec3(crate::c_str!("camera_forward"), camera_forward);
+            shader.set_vec3(crate::c_str!("camera_right"), camera_right);
         }
         
         mesh.draw_from_texture(shader, render_target.rgb_texture_id, render_target.depth_texture_id);

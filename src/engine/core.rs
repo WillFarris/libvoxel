@@ -205,7 +205,7 @@ impl Engine {
     }
 
     fn render_postprocess(&mut self, _view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
-        self.postprocess_mesh.render(elapsed_time, &self.render_target);
+        self.postprocess_mesh.render(elapsed_time, &self.render_target, &self.player.as_ref().unwrap().camera.forward, &self.player.as_ref().unwrap().camera.right);
 
         if let Some(gui) = self.gui.as_mut() {
             let inventory = &self.player.as_ref().unwrap().inventory;
