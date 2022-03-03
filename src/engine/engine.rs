@@ -25,30 +25,35 @@ pub struct Engine {
     postprocess_mesh: PostProcessMesh,
 }
 
-pub static mut ENGINE: Engine = Engine {
-    dimensions: (0, 0),
-    state: EngineState::Paused,
-    world: None,
-    player: None,
-    gui: None,
-    sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
-    elapsed_time: 0.0,
-    should_break_block: false,
-    should_interact: true,
-    framebuffer_id: 0,
-    render_target: RenderTexture {
-        framebuffer_id: 0,
-        depthbuffer_id: 0,
-        dimensions: (0, 0),
-        rgb_texture_id: 0,
-        depth_texture_id: 0,
-    },
-    postprocess_mesh: PostProcessMesh {
-        mesh: None,
-        shader: None,
-        dimensions: (0, 0),
+
+impl Default for Engine {
+    fn default() -> Self {
+        Engine {
+            dimensions: (0, 0),
+            state: EngineState::Paused,
+            world: None,
+            player: None,
+            gui: None,
+            sunlight_direction: Vector3 { x: -0.701, y: 0.701, z: -0.701 },
+            elapsed_time: 0.0,
+            should_break_block: false,
+            should_interact: true,
+            framebuffer_id: 0,
+            render_target: RenderTexture {
+                framebuffer_id: 0,
+                depthbuffer_id: 0,
+                dimensions: (0, 0),
+                rgb_texture_id: 0,
+                depth_texture_id: 0,
+            },
+            postprocess_mesh: PostProcessMesh {
+                mesh: None,
+                shader: None,
+                dimensions: (0, 0),
+            }
+        }
     }
-};
+}
 
 impl Engine {
 
@@ -158,19 +163,18 @@ impl Engine {
             }
 
             let delta_time = elapsed_time - self.elapsed_time;
+            self.elapsed_time = elapsed_time;
             #[cfg(target_os = "android")]
             #[cfg(feature = "debug")]
             {
                 //debug!("dt={}", delta_time);
             }
             self.player.as_mut().unwrap().update(self.world.as_ref().unwrap(), delta_time);
-            
-            self.render(elapsed_time);
         }
         self.elapsed_time = elapsed_time;
     }
 
-    pub fn render(&mut self, elapsed_time: f32) {
+    pub fn render(&mut self) {
         let player = match self.player.as_ref() {
             Some(player) => player,
             None => return,
@@ -180,7 +184,7 @@ impl Engine {
         let view_matrix: Matrix4<f32> = player.camera.view_matrix();
 
         self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
-        self.render_preprocess(&view_matrix, &perspective_matrix, elapsed_time);
+        self.render_preprocess(&view_matrix, &perspective_matrix, self.elapsed_time);
 
 
         unsafe {
@@ -189,7 +193,7 @@ impl Engine {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
-        self.render_postprocess(&view_matrix, &perspective_matrix, elapsed_time);
+        self.render_postprocess(&view_matrix, &perspective_matrix, self.elapsed_time);
     }
 
     fn render_preprocess(&mut self, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {

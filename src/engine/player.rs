@@ -43,8 +43,8 @@ impl Player {
         }
 
         if !self.walking {
-            self.velocity.x *= 0.9;
-            self.velocity.z *= 0.9;
+            self.velocity.x *= 1.0 - 10.0 * delta_time;
+            self.velocity.z *= 1.0 - 10.0 * delta_time;
         }
 
         self.velocity += self.acceleration * delta_time;
