@@ -1,10 +1,12 @@
-use crate::{c_str, graphics::{shader::Shader, vertex::Vertex}};
+use crate::c_str;
 use std::ffi::c_void;
 use std::ptr;
 use std::mem::size_of;
 use crate::offset_of;
 use gl::types::*;
 use image::{self, GenericImageView};
+
+use super::{vertex::Vertex, shader::Shader};
 
 
 #[derive(Clone, Copy, Debug)]
@@ -113,7 +115,7 @@ impl Mesh {
     }
 }
 
-pub fn texture_from_dynamic_image_bytes(img_bytes: &[u8], format: image::ImageFormat) -> u32 {
+pub fn texture_from_dynamic_image_bytes(img_bytes: &[u8], format: image::ImageFormat) -> Texture {
     let img = image::load_from_memory_with_format(img_bytes, format).unwrap().flipv();
     let format = match img {
         image::DynamicImage::ImageLuma8(_) => gl::RED,
@@ -142,5 +144,7 @@ pub fn texture_from_dynamic_image_bytes(img_bytes: &[u8], format: image::ImageFo
         
     }
 
-    texture_id
+    Texture {
+        id: texture_id,
+    }
 }

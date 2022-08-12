@@ -1,8 +1,8 @@
 use cgmath::{Matrix4, Vector2, Vector3};
 
-use crate::{c_str, engine::{block::BLOCKS, inventory::{Inventory}}, graphics::{mesh::Texture, vertex::Vertex}};
+use crate::{c_str, engine::{renderer::{mesh::{Mesh, Texture}, shader::Shader, vertex::Vertex}, world::block::{TextureType, BLOCKS}}};
 
-use super::{mesh::Mesh, shader::Shader};
+use super::inventory::Inventory;
 
 const CROSSHAIR_FACE: [Vertex; 6] = [
     Vertex { position: Vector3::new( 0.15, -0.15, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(1.0, 0.0) , vtype: 0 },   // Back-bottom-right
@@ -78,16 +78,16 @@ impl Gui {
             if let Some((id, _quantity)) = item {
                 let tex_coords = if let Some(tex_type) = BLOCKS[id].texture_map {
                     match tex_type {
-                        crate::engine::block::TextureType::Single(x, y) => (x, y),
-                        crate::engine::block::TextureType::TopAndSide(_top, side) => side,
-                        crate::engine::block::TextureType::TopSideBottom(_top, side, _bottom) => side,
-                        crate::engine::block::TextureType::TopSideFrontActivatable(front_inactive, _front_active, _side, _top) => front_inactive,
+                        TextureType::Single(x, y) => (x, y),
+                        TextureType::TopAndSide(_top, side) => side,
+                        TextureType::TopSideBottom(_top, side, _bottom) => side,
+                        TextureType::TopSideFrontActivatable(front_inactive, _front_active, _side, _top) => front_inactive,
                     }
                 } else {
                     continue;
                 };
 
-                let mut vertices = crate::graphics::meshgen::CUBE_FACES[5].clone();
+                let mut vertices = crate::engine::renderer::meshgen::CUBE_FACES[5].clone();
                 for v in 0..vertices.len() {
 
                     let scale = 0.07;

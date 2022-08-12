@@ -13,24 +13,24 @@ pub const POSTPROCESS_VERTICES: [Vertex; 6] = [
     Vertex { position: Vector3::new( 1.0,  1.0, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(1.0, 1.0), vtype: 0  }     // Back-top-right
 ];
 
-pub(crate) struct PostProcessMesh {
+pub(crate) struct PostProcessTarget {
     pub(crate) mesh: Option<Mesh>,
     pub(crate) shader: Option<Shader>,
     pub(crate) dimensions: (i32, i32),
 }
 
-impl PostProcessMesh {
+impl PostProcessTarget {
 
-    pub(crate) fn init(&mut self, shader: Shader, texture_id: u32, dimensions: (i32, i32)) {   
-        self.mesh = Some(Mesh::new(
-            POSTPROCESS_VERTICES.to_vec(),
-            &Texture {id: texture_id},
-            &shader,
-        ));
-
-        self.shader = Some(shader);
-        self.dimensions = dimensions;
-
+    pub(crate) fn create(shader: Shader, texture_id: u32, dimensions: (i32, i32)) -> Self {
+        Self {
+            mesh: Some(Mesh::new(
+                POSTPROCESS_VERTICES.to_vec(),
+                &Texture {id: texture_id},
+                &shader,
+            )),
+            shader: Some(shader),
+            dimensions,
+        }
     }
 
     pub(crate) fn render(&mut self, elapsed_time: f32, render_target: &RenderTexture, camera_forward: &Vector3<f32>, camera_right: &Vector3<f32>) {
@@ -48,7 +48,7 @@ impl PostProcessMesh {
         unsafe {
             //let sampler_str = crate::c_str!("renderedTexture").as_ptr();
             //gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler_str), 0);
-            //gl::BindTexture(gl::TEXTURE_2D, render_target.texture_id);
+            //gl::BindTexture(gl::TEXTURE_2D, render_target.rgb_texture_id);
 
             shader.set_float(crate::c_str!("time"), elapsed_time);
             shader.set_vec3(crate::c_str!("resolution"), &Vector3::new(self.dimensions.0 as f32, self.dimensions.1 as f32, 0.0));

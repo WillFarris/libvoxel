@@ -1,9 +1,16 @@
+pub mod inventory;
+pub mod camera;
+pub mod gui;
+
 use cgmath::Vector3;
 
-use crate::engine::{block::BLOCKS, camera::Camera, world::World};
+use camera::Camera;
+
+use super::world::World;
+use super::world::block::BLOCKS;
 use crate::physics::collision;
 use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize, q_rsqrt}};
-use crate::engine::inventory::Inventory;
+use inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
 

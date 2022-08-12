@@ -1,10 +1,15 @@
+pub mod block;
+
 use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::{c_str, engine::{block::{BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader}};
-use crate::graphics::mesh::{Mesh, Texture};
+use crate::c_str;
 
 use noise::{Perlin, NoiseFn, Seedable};
+
+use self::block::{BLOCKS, MeshType};
+
+use super::renderer::{mesh::{Mesh, Texture}, shader::Shader, meshgen};
 
 #[cfg(target_os = "android")]
 extern crate android_log;
@@ -431,16 +436,16 @@ impl World {
                         if i == 0 {
                             continue;
                         }
-                        let cur = &crate::engine::block::BLOCKS[i];
+                        let cur = &block::BLOCKS[i];
                         let tex_coords:[(f32, f32);  6] = if let Some(texture_type) = &cur.texture_map {
                             let mut coords = [(0.0f32, 0.0f32); 6];
                             match texture_type {
-                                crate::engine::block::TextureType::Single(x, y) => {
+                                block::TextureType::Single(x, y) => {
                                     for i in 0..6 {
                                         coords[i] = (*x, *y)
                                     }
                                 },
-                                crate::engine::block::TextureType::TopAndSide((x_top, y_top), (x_side, y_side)) => {
+                                block::TextureType::TopAndSide((x_top, y_top), (x_side, y_side)) => {
                                     coords[0] = (*x_side, *y_side);
                                     coords[1] = (*x_side, *y_side);
                                     coords[2] = (*x_top, *y_top);
@@ -448,7 +453,7 @@ impl World {
                                     coords[4] = (*x_side, *y_side);
                                     coords[5] = (*x_side, *y_side);
                                 },
-                                crate::engine::block::TextureType::TopSideBottom((x_top, y_top), (x_side, y_side), (x_bottom, y_bottom)) => {
+                                block::TextureType::TopSideBottom((x_top, y_top), (x_side, y_side), (x_bottom, y_bottom)) => {
                                     coords[0] = (*x_side, *y_side);
                                     coords[1] = (*x_side, *y_side);
                                     coords[2] = (*x_top, *y_top);
@@ -456,7 +461,7 @@ impl World {
                                     coords[4] = (*x_side, *y_side);
                                     coords[5] = (*x_side, *y_side);
                                 },
-                                crate::engine::block::TextureType::TopSideFrontActivatable(
+                                block::TextureType::TopSideFrontActivatable(
                                     (x_front_inactive, y_front_inactive),
                                     (x_front_active, y_front_active),
                                     (x_side, y_side),

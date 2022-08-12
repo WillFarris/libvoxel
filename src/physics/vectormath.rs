@@ -1,8 +1,7 @@
 use std::ops::Mul;
-
 use cgmath::{Matrix3, Vector3, Vector4};
 
-use crate::engine::world;
+use crate::engine::world::World;
 
 pub const X_VECTOR: Vector3<f32> = Vector3::new(1.0, 0.0, 0.0);
 pub const Y_VECTOR: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
@@ -120,7 +119,7 @@ pub fn dot<T: std::ops::Add<Output = T> + Mul<Output = T>>(u: Vector3<T>, v: Vec
     u.x * v.x + u.y * v.y + u.z * v.z
 }
 
-pub fn dda(world: &world::World, start: &Vector3<f32>, dir: &Vector3<f32>, max_dist: f32) -> Option<(Vector3<f32>, Vector3<isize>)> {
+pub fn dda(world: &World, start: &Vector3<f32>, dir: &Vector3<f32>, max_dist: f32) -> Option<(Vector3<f32>, Vector3<isize>)> {
     let ray_dir = normalize(dir);
 
     let mut ray_unit_step_size = Vector3 {
