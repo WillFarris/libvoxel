@@ -26,6 +26,8 @@ void main() {
         pos4.xz += mod(position.y, 1.0) * 0.03 * sin(WIND_SPEED * (time + position.y));
     } else if(vtype == 2) {
         pos4.xz += 0.03 * sin(WIND_SPEED * (time + position.y + 0.1415));
+    } else {
+        //pos4.xz += position.y * time;
     }
     vec4 pos4_new = camera_matrix * model_matrix * pos4;
     

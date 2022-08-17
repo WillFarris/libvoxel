@@ -27,10 +27,11 @@ void main(){
     // Center of screen
     vec2 c = uv-0.5;
 
-    float depth = linearize_depth(texture(depthTexture, uv).r,zn,zf);
+    float depth = linearize_depth(texture(depthTexture, uv).r,zn,zf) / zf;
 
-    /*float center_depth = linearize_depth(texture(depthTexture, vec2(0.5, 0.5)).r,zn,zf);
-    for(int y=-1;y<=1;++y) {
+    float center_depth = linearize_depth(texture(depthTexture, vec2(0.5, 0.5)).r,zn,zf);
+    
+    /*for(int y=-1;y<=1;++y) {
         for(int x=-1;x<=1;++x) {
             vec2 offset = vec2(float(x), float(y));
             center_depth += linearize_depth(
@@ -43,9 +44,6 @@ void main(){
         }
     }
     center_depth /= 9.0;*/
-
-    depth /= zf;
-    //center_depth /= zf;
     
     // Bright in center, dark in corners
     float vignette = c.x * c.x + c.y * c.y;
@@ -73,7 +71,8 @@ void main(){
 
     vec3 direction = vec3(c, 1.0) + camera_forward;
     
-    
+    //out_color.a *= (1.0 - depth);
+
     color = out_color;
     //color = vec4(1.0);
 }

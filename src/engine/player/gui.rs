@@ -15,6 +15,7 @@ const CROSSHAIR_FACE: [Vertex; 6] = [
 ];
 
 const ASPECT_RATIO: f32 = 16f32 / 9f32;
+
 const HOTBAR_FACE: [Vertex; 6] = [
     Vertex { position: Vector3::new( -0.5,  -1.0 + (ASPECT_RATIO * 0.120879),  -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.0, 0.9140625), vtype: 0},
     Vertex { position: Vector3::new( 0.5, -1.0 + (ASPECT_RATIO * 0.120879), -0.9), normal: Vector3::new( 0.0,  0.0, 0.0), tex_coords: Vector2::new(0.7109375, 0.9140625), vtype: 0 },
@@ -56,7 +57,10 @@ impl Gui {
         }
     }
 
-    pub fn render(&self, inventory: &Inventory, perspective_matrix: &Matrix4<f32>, terrain_texture: Texture) {
+    pub fn render(&self, inventory: &Inventory, perspective_matrix: &Matrix4<f32>, terrain_texture: Texture, resolution: (i32, i32)) {
+        let resolution = (resolution.0 as f32, resolution.1 as f32);
+        let aspect_ratio = resolution.0 / resolution.1;
+
         if let Some(crosshair_mesh) = &self.crosshair_mesh {
             let crosshair_shader = &self.crosshair_shader;
 
@@ -93,7 +97,7 @@ impl Gui {
                     let scale = 0.07;
 
                     vertices[v].position.x *= scale;
-                    vertices[v].position.y *= scale * (16.0/9.0);
+                    vertices[v].position.y *= scale * aspect_ratio;
                     
                     vertices[v].position.x -= 0.475;
 

@@ -10,8 +10,8 @@ in vec2 v_tex_coords;
 uniform vec3 sunlight_direction;
 uniform sampler2D texture_map;
 
-out vec4 color;
-out vec3 normal;
+layout(location = 0) out vec4 color;
+//out vec3 normal;
 
 void main() {
     vec4 tex_color = texture(texture_map, v_tex_coords).rgba;

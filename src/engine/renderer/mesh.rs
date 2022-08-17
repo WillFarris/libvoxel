@@ -33,13 +33,27 @@ impl Mesh {
         mesh
     }
 
+    pub fn cleanup_vertex_objects(&mut self) {
+        if self.vao != 0 {
+            unsafe {
+                gl::DeleteVertexArrays(1, &mut self.vao);
+            }
+            self.vao = 0;
+        }
+        if self.vbo != 0 {
+            unsafe {
+                gl::DeleteBuffers(1, &mut self.vbo);
+            }
+            self.vbo = 0;
+        }
+    }
+
     pub fn setup_mesh(&mut self, shader: &Shader) {
         if self.vertices.len() == 0 {
             //panic!("[ Mesh::setup_mesh() ] No vertices to setup!");
             return;
         }
         unsafe {
-
             if self.vao != 0 {
                 gl::DeleteVertexArrays(1, &mut self.vao);
             }
@@ -92,6 +106,7 @@ impl Mesh {
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
             gl::BindVertexArray(0);
+            gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
 
@@ -107,10 +122,10 @@ impl Mesh {
             let sampler = c_str!("depthTexture").as_ptr();
             gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler), 1);
 
+            gl::ActiveTexture(gl::TEXTURE0);
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
             gl::BindVertexArray(0);
-            gl::ActiveTexture(gl::TEXTURE0);
         }
     }
 }

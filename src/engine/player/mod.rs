@@ -14,11 +14,11 @@ use inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
 
-pub struct Player {
-    pub camera: Camera,
-    pub position: Vector3<f32>,
-    pub velocity: Vector3<f32>,
-    pub acceleration: Vector3<f32>,
+pub(crate) struct Player {
+    pub(crate) camera: Camera,
+    position: Vector3<f32>,
+    velocity: Vector3<f32>,
+    acceleration: Vector3<f32>,
     move_speed: f32,
     grounded: bool,
     walking: bool,

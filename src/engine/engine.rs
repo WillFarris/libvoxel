@@ -1,4 +1,5 @@
 use cgmath::{Matrix4, Vector3};
+use noise::utils::PlaneMapBuilder;
 
 use crate::physics::vectormath;
 
@@ -24,17 +25,30 @@ pub enum PlayerInteraction {
     BothHands,
 }
 
+pub enum PlayerMovement {
+    Look(f32, f32),
+    Walk(f32, f32, f32),
+    Inventory(usize),
+    Jump,
+    Stop,
+}
+
 pub struct Engine {
-    pub terrain: World,
-    pub player: Player,
-    pub renderer: Renderer,
-    pub gui: Gui,
+    terrain: World,
+    player: Player,
+    renderer: Renderer,
+    gui: Gui,
 
     dimensions: (i32, i32),
     sunlight_direction: Vector3<f32>,
     elapsed_time: f32,
     pub play_state: PlayState,
     pub player_interaction: PlayerInteraction,
+}
+
+enum WorldType {
+    New(u32, isize),
+    LoadFrom(String),
 }
 
 impl Engine {
@@ -96,18 +110,51 @@ impl Engine {
             self.player_interaction = PlayerInteraction::None;
 
             self.player.update(&self.terrain, delta_time);
+            self.elapsed_time += delta_time;
         }
-        self.elapsed_time += delta_time;
     }
 
     pub fn render(&mut self) {
         let perspective_matrix: Matrix4<f32> = perspective_matrix(self.dimensions.0, self.dimensions.1);
         let view_matrix: Matrix4<f32> = self.player.camera.view_matrix();
 
+        
         self.renderer.render_preprocess(&self.terrain, &view_matrix, &perspective_matrix, &self.sunlight_direction, self.elapsed_time);
         self.renderer.render_postprocess(&self.player, self.elapsed_time);
 
-        self.gui.render(&self.player.inventory, &perspective_matrix, self.terrain.texture);
+
+        self.gui.render(&self.player.inventory, &perspective_matrix, self.terrain.texture, self.dimensions);
+    }
+
+    pub fn pause(&mut self) {
+        self.play_state = PlayState::Paused;
+    }
+
+    pub fn resume(&mut self) {
+        self.play_state = PlayState::Running;
+    }
+
+    pub fn player_movement(&mut self, movement: PlayerMovement) {
+        if self.play_state == PlayState::Running {
+            match movement {
+                PlayerMovement::Look(dx, dy) => {
+                    self.player.camera.rotate_on_x_axis(f32::from(dx));
+                    self.player.camera.rotate_on_y_axis(f32::from(dy));
+                },
+                PlayerMovement::Walk(dx, dy, dz) => {
+                    self.player.move_direction(Vector3::new(dx, dy, dz));
+                },
+                PlayerMovement::Jump => {
+                    self.player.jump();
+                },
+                PlayerMovement::Stop => {
+                    self.player.stop_move();
+                }
+                PlayerMovement::Inventory(selected) => {
+                    self.player.inventory.selected = selected;
+                },
+            }
+        }
     }
 }
 

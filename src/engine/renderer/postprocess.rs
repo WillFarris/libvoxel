@@ -14,48 +14,40 @@ pub const POSTPROCESS_VERTICES: [Vertex; 6] = [
 ];
 
 pub(crate) struct PostProcessTarget {
-    pub(crate) mesh: Option<Mesh>,
-    pub(crate) shader: Option<Shader>,
+    pub(crate) mesh: Mesh,
+    pub(crate) shader: Shader,
     pub(crate) dimensions: (i32, i32),
 }
 
 impl PostProcessTarget {
 
     pub(crate) fn create(shader: Shader, texture_id: u32, dimensions: (i32, i32)) -> Self {
+        let mesh = Mesh::new(
+            POSTPROCESS_VERTICES.to_vec(),
+            &Texture {id: texture_id},
+            &shader,
+        );
+
         Self {
-            mesh: Some(Mesh::new(
-                POSTPROCESS_VERTICES.to_vec(),
-                &Texture {id: texture_id},
-                &shader,
-            )),
-            shader: Some(shader),
+            mesh,
+            shader,
             dimensions,
         }
     }
 
-    pub(crate) fn render(&mut self, elapsed_time: f32, render_target: &RenderTexture, camera_forward: &Vector3<f32>, camera_right: &Vector3<f32>) {
-        let shader = match self.shader.as_mut() {
-            Some(s) => s,
-            None => return
-        };
-
-        let mesh = match self.mesh.as_mut() {
-            Some(m) => m,
-            None => return
-        };
-        
-        shader.use_program();
+    pub(crate) fn render(&mut self, elapsed_time: f32, render_target: &RenderTexture, camera_forward: &Vector3<f32>, camera_right: &Vector3<f32>) {      
+        self.shader.use_program();
         unsafe {
             //let sampler_str = crate::c_str!("renderedTexture").as_ptr();
             //gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler_str), 0);
             //gl::BindTexture(gl::TEXTURE_2D, render_target.rgb_texture_id);
 
-            shader.set_float(crate::c_str!("time"), elapsed_time);
-            shader.set_vec3(crate::c_str!("resolution"), &Vector3::new(self.dimensions.0 as f32, self.dimensions.1 as f32, 0.0));
-            shader.set_vec3(crate::c_str!("camera_forward"), camera_forward);
-            shader.set_vec3(crate::c_str!("camera_right"), camera_right);
+            self.shader.set_float(crate::c_str!("time"), elapsed_time);
+            self.shader.set_vec3(crate::c_str!("resolution"), &Vector3::new(self.dimensions.0 as f32, self.dimensions.1 as f32, 0.0));
+            //shader.set_vec3(crate::c_str!("camera_forward"), camera_forward);
+            //shader.set_vec3(crate::c_str!("camera_right"), camera_right);
         }
         
-        mesh.draw_from_texture(shader, render_target.rgb_texture_id, render_target.depth_texture_id);
+        self.mesh.draw_from_texture(&self.shader, render_target.rgb_texture_id, render_target.depth_texture_id);
     }
 }

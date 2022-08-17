@@ -29,7 +29,9 @@ impl Renderer {
             debug!("Loaded GL pointer");
         }
         unsafe {
+            gl::ClearDepthf(1.0);
             gl::Enable(gl::DEPTH_TEST);
+            gl::DepthFunc(gl::LEQUAL);
 
             gl::Enable(gl::CULL_FACE);
             gl::CullFace(gl::BACK);
@@ -53,6 +55,8 @@ impl Renderer {
 
         let postprocess_shader = Shader::new(include_str!("../../../shaders/postprocess_vertex.glsl"), include_str!("../../../shaders/postprocess_fragment.glsl")).unwrap();
 
+        let postprocess_target = PostProcessTarget::create(postprocess_shader, postprocess_rgb_texture_id, dimensions);
+
         #[cfg(target_os = "android")] {
             debug!("Setup Renderer");
         }
@@ -61,11 +65,11 @@ impl Renderer {
             framebuffer_id,
             render_target,
             dimensions,
-            postprocess_target: PostProcessTarget::create(postprocess_shader, postprocess_rgb_texture_id, dimensions),
+            postprocess_target,
         }
     }
 
-    pub fn render_preprocess(&mut self, world: &World, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, sunlight_direction: &Vector3<f32>, elapsed_time: f32) {
+    pub(crate) fn render_preprocess(&mut self, world: &World, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, sunlight_direction: &Vector3<f32>, elapsed_time: f32) {
         self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
 
         let block_shader = &world.world_shader;
@@ -77,7 +81,7 @@ impl Renderer {
         world.render_world();
     }
 
-    pub fn render_postprocess(&mut self, player: &Player, elapsed_time: f32){
+    pub(crate) fn render_postprocess(&mut self, player: &Player, elapsed_time: f32){
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.framebuffer_id as u32);
             gl::Viewport(0,0,self.dimensions.0,self.dimensions.1);

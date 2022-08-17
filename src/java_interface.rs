@@ -22,11 +22,28 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_initEngine(_env:
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_update(_env: JNIEnv, _: JClass, engine_ptr: jlong, delta_time: jfloat) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    //debug!("Delta time: {}s", delta_time);
+    //debug!("Update: dt={}s", delta_time);
     engine.update(delta_time as f32);
     engine.render();
 }
 
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_pauseGame(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
+    if engine_ptr == 0 {
+        return;
+    }
+    let engine = &mut *(engine_ptr as *mut Engine);
+    engine.pause();
+}
+
+#[no_mangle]
+pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_resumeGame(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
+    if engine_ptr == 0 {
+        return;
+    }
+    let engine = &mut *(engine_ptr as *mut Engine);
+    engine.resume();
+}
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv, _: JClass) -> jstring {
@@ -38,14 +55,13 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_lookAround(_env: JNIEnv, _: JClass, engine_ptr: jlong, dx: jfloat, dy: jfloat) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.player.camera.rotate_on_x_axis(f32::from(dy));
-    engine.player.camera.rotate_on_y_axis(f32::from(dx));
+    engine.process_mouse_input(f32::from(dx), f32::from(dy));
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_moveAround(_env: JNIEnv, _: JClass, engine_ptr: jlong, dx: jfloat, dy: jfloat, dz: jfloat) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.player.move_direction(Vector3::new(f32::from(dx), f32::from(dy), f32::from(dz)));
+    engine.process_movement_input(f32::from(dx), f32::from(dy), f32::from(dz));
 }
 
 #[no_mangle]
@@ -63,6 +79,8 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_playerJump(_env:
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
+    //engine.break_block();
+    //engine.should_break_block = true;
     //ENGINE.break_block();
     //ENGINE.should_break_block = true;
 }
@@ -70,6 +88,7 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env:
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_placeBlock(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
+    //engine.should_interact = true;
     //ENGINE.break_block();
     //ENGINE.should_interact = true;
 }

@@ -33,7 +33,7 @@ impl RenderTexture {
             // Depth buffer
             gl::GenRenderbuffers(1, &mut depthbuffer_id);
             gl::BindRenderbuffer(gl::RENDERBUFFER, depthbuffer_id);
-            gl::RenderbufferStorage(gl::RENDERBUFFER, gl::DEPTH_COMPONENT, width, height);
+            gl::RenderbufferStorage(gl::RENDERBUFFER, gl::DEPTH_COMPONENT24, width, height);
             gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, gl::RENDERBUFFER, depthbuffer_id);
 
             // Depth texture
@@ -48,6 +48,9 @@ impl RenderTexture {
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_COMPARE_MODE, gl::NONE as i32);
             gl::FramebufferTexture(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, depth_texture_id, 0);
 
+            let draw_buffers = [gl::COLOR_ATTACHMENT0];
+            gl::DrawBuffers(2, &draw_buffers as *const u32);
+
             let fb_status = gl::CheckFramebufferStatus(gl::FRAMEBUFFER);
             if fb_status != gl::FRAMEBUFFER_COMPLETE {
                 #[cfg(target_os = "android")] {
@@ -56,11 +59,10 @@ impl RenderTexture {
                 panic!("Could not setup framebuffer!")
             }
         }
-        println!("Generated framebuffer {} with render texture {}", framebuffer_id, rgb_texture_id);
+        println!("Generated framebuffer {}, RGB texture {}, depth buffer {}, depth texture {}", framebuffer_id, rgb_texture_id, depthbuffer_id, depth_texture_id);
         #[cfg(target_os = "android")] {
-            debug!("Generated framebuffer {} with render texture {}", framebuffer_id, rgb_texture_id);
+            debug!("Generated framebuffer {}, RGB texture {}, depth buffer {}, depth texture {}", framebuffer_id, rgb_texture_id, depthbuffer_id, depth_texture_id);
         }
-
         Self {
             framebuffer_id,
             rgb_texture_id,
