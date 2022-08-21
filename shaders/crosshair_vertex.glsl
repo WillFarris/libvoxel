@@ -2,22 +2,20 @@
 
 precision mediump float;
 
-in vec3 position;
-in vec3 normal;
+in vec2 position;
 in vec2 tex_coords;
 
 uniform mat4 perspective_matrix;
+uniform vec2 translation;
+uniform float gui_scale;
 
-out vec3 v_normal;
 out vec3 v_position;
 out vec2 v_tex_coords;
 
 void main() {
-    vec4 position = 0.625 *perspective_matrix * vec4(position, 1.0);
-
+    vec4 position = (0.625 * gui_scale * (perspective_matrix * vec4(position, 0.0, 1.0)) + vec4(translation, 0.0, 0.0));
 
     v_position = position.xyz;
-    v_normal = normal;
     v_tex_coords = tex_coords;
 
     gl_Position = vec4(position.xyz, 1.0);

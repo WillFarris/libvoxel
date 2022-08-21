@@ -6,7 +6,6 @@ in vec3 v_normal;
 in vec3 v_position;
 in vec2 v_tex_coords;
 
-uniform vec3 camera_position;
 uniform vec3 sunlight_direction;
 uniform sampler2D texture_map;
 
@@ -23,5 +22,5 @@ void main() {
     float specular = pow(max(dot(half_direction, normalize(v_normal)), 0.0), 16.0);
     tex_color.rgb = tex_color.rgb + specular * tex_color.rgb * vec3(0.9);
 
-    color = vec4(vec3(0.001) + diffuse * tex_color.rgb, tex_color.a);
+    color = vec4(vec3(0.01) + diffuse * tex_color.rgb, tex_color.a);
 }

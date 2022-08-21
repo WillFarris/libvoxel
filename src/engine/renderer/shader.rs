@@ -1,14 +1,15 @@
 use std::ffi::CStr;
 use std::{ffi::CString, ptr};
-use cgmath::{Array, Matrix, Matrix4, Vector3};
+use cgmath::{Array, Matrix, Matrix4, Vector3, Vector2};
 
+#[derive(Clone)]
 pub struct Shader {
     pub id: u32,
 }
 
 impl Shader {
     pub fn new(vertex_str: &str, fragment_str: &str) -> Result<Self, String> {
-
+        
         let mut shader_program: Shader = Shader { id: 0u32 };
         unsafe {
             // build and compile our shader program
@@ -68,6 +69,12 @@ impl Shader {
     pub fn set_vec3(&self, name: &CStr, vec: &Vector3<f32>) {
         unsafe {
             gl::Uniform3fv(gl::GetUniformLocation(self.id, name.as_ptr()), 1, vec.as_ptr());
+        }
+    }
+
+    pub fn set_vec2(&self, name: &CStr, vec: &Vector2<f32>) {
+        unsafe {
+            gl::Uniform2fv(gl::GetUniformLocation(self.id, name.as_ptr()), 1, vec.as_ptr());
         }
     }
 

@@ -1,7 +1,7 @@
 extern crate jni;
 extern crate gl;
 
-use crate::engine::engine::Engine;
+use crate::engine::engine::{Engine, PlayerMovement};
 
 use self::jni::JNIEnv;
 use self::jni::objects::JClass;
@@ -55,58 +55,53 @@ pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_test(env: JNIEnv
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_lookAround(_env: JNIEnv, _: JClass, engine_ptr: jlong, dx: jfloat, dy: jfloat) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.process_mouse_input(f32::from(dx), f32::from(dy));
+    //engine.process_mouse_input(f32::from(dx), f32::from(dy));
+    engine.player_movement(PlayerMovement::Look(dx, dy));
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_moveAround(_env: JNIEnv, _: JClass, engine_ptr: jlong, dx: jfloat, dy: jfloat, dz: jfloat) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.process_movement_input(f32::from(dx), f32::from(dy), f32::from(dz));
+    //engine.process_movement_input(f32::from(dx), f32::from(dy), f32::from(dz));
+    engine.player_movement(PlayerMovement::Walk(dx, dy, dz));
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_stopMoving(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.player.stop_move();
+    //engine.player.stop_move();
+    engine.player_movement(PlayerMovement::Stop);
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_playerJump(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    engine.player.jump();
+    //engine.player.jump();
+    engine.player_movement(PlayerMovement::Jump);
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_breakBlock(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    //engine.break_block();
-    //engine.should_break_block = true;
-    //ENGINE.break_block();
-    //ENGINE.should_break_block = true;
+    
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_placeBlock(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    //engine.should_interact = true;
-    //ENGINE.break_block();
-    //ENGINE.should_interact = true;
+    
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_prevInventory(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    /*if let Some(player) = ENGINE.player.as_mut() {
-        player.inventory.selected = std::cmp::max(player.inventory.selected - 1, 0)
-    }*/
+
 }
 
 #[no_mangle]
 pub unsafe extern fn Java_org_farriswheel_voxelgame_VoxelEngine_nextInventory(_env: JNIEnv, _: JClass, engine_ptr: jlong) {
     let engine = &mut *(engine_ptr as *mut Engine);
-    /* if let Some(player) = ENGINE.player.as_mut() {
-        player.inventory.selected = std::cmp::min(player.inventory.selected + 1, 8)
-    } */
+    
 }
 
 

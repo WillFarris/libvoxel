@@ -1,6 +1,6 @@
 use cgmath::{Matrix4, Vector3};
 use render_texture::RenderTexture;
-use postprocess::PostProcessTarget;
+use postprocess::PostProcessRenderMesh;
 
 use self::shader::Shader;
 
@@ -17,7 +17,7 @@ pub mod postprocess;
 pub struct Renderer {
     framebuffer_id: i32,
     render_target: RenderTexture,
-    postprocess_target: PostProcessTarget,
+    postprocess_target: PostProcessRenderMesh,
     dimensions: (i32, i32),
 }
 
@@ -53,9 +53,9 @@ impl Renderer {
         let render_target = RenderTexture::new(dimensions.0, dimensions.1);
         let postprocess_rgb_texture_id = render_target.rgb_texture_id;
 
-        let postprocess_shader = Shader::new(include_str!("../../../shaders/postprocess_vertex.glsl"), include_str!("../../../shaders/postprocess_fragment.glsl")).unwrap();
-
-        let postprocess_target = PostProcessTarget::create(postprocess_shader, postprocess_rgb_texture_id, dimensions);
+        let postprocess_vertex_src = include_str!("../../../shaders/postprocess_vertex.glsl");
+        let postprocess_fragment_src = include_str!("../../../shaders/postprocess_fragment.glsl");
+        let postprocess_target = PostProcessRenderMesh::new(postprocess_vertex_src, postprocess_fragment_src, postprocess_rgb_texture_id, dimensions);
 
         #[cfg(target_os = "android")] {
             debug!("Setup Renderer");
@@ -69,16 +69,8 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn render_preprocess(&mut self, world: &World, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, sunlight_direction: &Vector3<f32>, elapsed_time: f32) {
+    pub(crate) fn select_rendertexture(&mut self) {
         self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
-
-        let block_shader = &world.world_shader;
-        block_shader.use_program();
-        block_shader.set_mat4(unsafe {c_str!("perspective_matrix")}, &perspective_matrix);
-        block_shader.set_mat4(unsafe {c_str!("view_matrix")}, &view_matrix);
-        block_shader.set_vec3(unsafe {c_str!("sunlight_direction")}, sunlight_direction);
-        block_shader.set_float(unsafe {c_str!("time")}, elapsed_time);
-        world.render_world();
     }
 
     pub(crate) fn render_postprocess(&mut self, player: &Player, elapsed_time: f32){
@@ -88,6 +80,6 @@ impl Renderer {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
-        self.postprocess_target.render(elapsed_time, &self.render_target, &player.camera.forward, &player.camera.right);
+        self.postprocess_target.render(elapsed_time);
     }
 }

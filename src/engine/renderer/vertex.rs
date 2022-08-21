@@ -3,15 +3,15 @@ use cgmath::prelude::*;
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
-pub struct Vertex {
+pub struct Vertex3D {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub tex_coords: Vector2<f32>,
     pub vtype: i32,
 }
 
-impl Vertex {
-    pub(crate) fn _postion_only(position: Vector3<f32>, tex_coords: Vector2<f32>) -> Self {
+impl Vertex3D {
+    pub(crate) fn postion_only(position: Vector3<f32>, tex_coords: Vector2<f32>) -> Self {
         let mut default = Self::default();
         default.position = position;
         default.tex_coords = tex_coords;
@@ -19,7 +19,7 @@ impl Vertex {
     }
 }
 
-impl Default for Vertex {
+impl Default for Vertex3D {
     fn default() -> Self {
         Self {
             position: Vector3::zero(),
@@ -31,9 +31,10 @@ impl Default for Vertex {
 }
 
 #[derive(Copy, Clone, Debug)]
+#[repr(C)]
 pub struct Vertex2D {
-    pub position: (f32, f32),
-    pub tex_coords: (f32, f32),
+    pub position: Vector2<f32>,
+    pub tex_coords: Vector2<f32>,
 }
 
 trait VAO {

@@ -14,7 +14,7 @@ enum Vec3Direction {
     Z
 }
 
-pub fn quaternion_rotate(vec: &Vector3<f32>, angle: f32, axis: &Vector3<f32>) -> Vector3<f32> {
+pub fn rotation_matrix(angle: f32, axis: &Vector3<f32>) -> Matrix3<f32> {
     let q = Vector4::new(
         (angle / 2.0).cos(),
         axis.x * (angle / 2.0).sin(),
@@ -22,7 +22,7 @@ pub fn quaternion_rotate(vec: &Vector3<f32>, angle: f32, axis: &Vector3<f32>) ->
         axis.z * (angle / 2.0).sin(),
     );
 
-    let rotation_matrix: Matrix3<f32> = Matrix3::from_cols(
+    Matrix3::from_cols(
         Vector3::new(
             q.x * q.x + q.y * q.y - q.z * q.z - q[3] * q[3],
             2.0 * (q.y * q.z - q.x * q[3]),
@@ -38,7 +38,11 @@ pub fn quaternion_rotate(vec: &Vector3<f32>, angle: f32, axis: &Vector3<f32>) ->
             2.0 * (q.z * q[3] + q.x * q.y),
             q.x * q.x - q.y * q.y - q.z * q.z + q[3] * q[3],
         ),
-    );
+    )
+}
+
+pub fn quaternion_rotate(vec: &Vector3<f32>, angle: f32, axis: &Vector3<f32>) -> Vector3<f32> {
+    let rotation_matrix= rotation_matrix(angle, axis);
 
     Vector3::new(
         vec.x * rotation_matrix.x.x

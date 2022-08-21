@@ -9,7 +9,7 @@ use noise::{Perlin, NoiseFn, Seedable};
 
 use self::block::{BLOCKS, MeshType};
 
-use super::renderer::{mesh::{Mesh, Texture}, shader::Shader, meshgen};
+use super::renderer::{mesh::{ChunkMesh, Texture}, shader::Shader, meshgen, vertex::Vertex3D};
 
 #[cfg(target_os = "android")]
 extern crate android_log;
@@ -19,7 +19,7 @@ pub const CHUNK_SIZE: usize = 16;
 pub struct Chunk {
     blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     metadata: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-    block_mesh: Option<Mesh>,
+    block_mesh: Box<Option<ChunkMesh>>,
     model_matrix: Matrix4<f32>,
 }
 
@@ -28,7 +28,7 @@ impl Chunk {
         Self {
             blocks,
             metadata: [[[0usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-            block_mesh: None,
+            block_mesh: Box::new(None),
             model_matrix: Matrix4::from_translation(Vector3::new(position.x as f32, position.y as f32, position.z as f32)),
         }
     }
@@ -56,6 +56,10 @@ impl Chunk {
             }
         }
     }
+
+    pub fn update_mesh(&mut self, vertices: Vec<Vertex3D>, texture: &Texture, shader: &Shader) {
+        self.block_mesh = Box::new(Some(ChunkMesh::new(vertices, texture.clone(), shader.clone())));
+    }
 }
 
 pub struct World {
@@ -65,8 +69,10 @@ pub struct World {
     noise_offset: Vector2<f64>,
     noise_scale: f64,
     perlin: Perlin,
+
+
     pub texture: Texture,
-    pub(crate) world_shader: Shader,
+    pub(crate) terrain_shader: Shader,
 }
 
 impl World {
@@ -87,7 +93,7 @@ impl World {
             noise_scale,
             perlin,
             texture,
-            world_shader,
+            terrain_shader: world_shader,
         };
         
         for chunk_x in -chunk_radius..chunk_radius {
@@ -281,12 +287,18 @@ impl World {
                             + 10.1
     }
 
-    pub fn render_world(&self) {
+    pub fn render(&self, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
         unsafe {
+            self.terrain_shader.use_program();
+            self.terrain_shader.set_mat4(c_str!("perspective_matrix"), perspective_matrix);
+            self.terrain_shader.set_mat4(c_str!("view_matrix"), view_matrix);
+            self.terrain_shader.set_vec3(c_str!("sunlight_direction"), &Vector3::new(0.0, 1.0, 0.0));
+            self.terrain_shader.set_float(c_str!("time"), elapsed_time);
+
             for (_position, chunk) in &self.chunks {
-                if let Some(m) = &chunk.block_mesh {
-                    self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                    m.draw(&self.world_shader);
+                if let Some(m) = &*chunk.block_mesh {
+                    self.terrain_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
+                    m.draw(&self.terrain_shader);
                 }
             }
         }
@@ -588,8 +600,7 @@ impl World {
 
         if !block_vertices.is_empty() {
             if let Some(chunk) = self.chunks.get_mut(chunk_index) {
-                let block_mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
-                chunk.block_mesh = Some(block_mesh);
+                chunk.update_mesh(block_vertices, &self.texture, &self.terrain_shader);
             }
         }
     }
