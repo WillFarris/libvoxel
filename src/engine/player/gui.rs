@@ -1,6 +1,6 @@
-use cgmath::{Matrix4, Vector2, Vector3};
+use cgmath::{Matrix4, Vector2};
 
-use crate::{c_str, engine::{renderer::{mesh::{ChunkMesh, Texture, Mesh2D}, shader::Shader, vertex::{Vertex3D, Vertex2D}}, world::block::{TextureType, BLOCKS}}};
+use crate::engine::{renderer::{mesh::{Texture, Mesh2D}, shader::Shader, vertex::Vertex2D}, world::block::{TextureType, BLOCKS}};
 
 use super::inventory::Inventory;
 
@@ -32,8 +32,6 @@ pub struct Gui {
     pub selected_meshes: Vec<Mesh2D>,
 
     pub gui_scale: f32,
-    //pub crosshair_shader: Shader,
-    //pub inventory_shader: Shader,
 }
 
 impl Gui {
@@ -52,7 +50,7 @@ impl Gui {
         }
     }
 
-    pub fn render(&mut self, inventory: &Inventory, perspective_matrix: &Matrix4<f32>, terrain_texture: Texture, resolution: (i32, i32)) {
+    pub fn render(&mut self, inventory: &Inventory, perspective_matrix: &Matrix4<f32>, resolution: (i32, i32)) {
         let resolution = (resolution.0 as f32, resolution.1 as f32);
         let aspect_ratio = resolution.0 / resolution.1;
 

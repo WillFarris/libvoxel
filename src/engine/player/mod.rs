@@ -2,14 +2,14 @@ pub mod inventory;
 pub mod camera;
 pub mod gui;
 
-use cgmath::Vector3;
+use cgmath::{Vector3, InnerSpace};
 
 use camera::Camera;
 
 use super::world::World;
 use super::world::block::BLOCKS;
 use crate::physics::collision;
-use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, normalize, q_rsqrt}};
+use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, q_rsqrt}};
 use inventory::Inventory;
 
 const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
@@ -56,7 +56,7 @@ impl Player {
 
         self.velocity += self.acceleration * delta_time;
 
-        let forward = normalize(&Vector3::new(self.camera.forward.x, 0.0, self.camera.forward.z));
+        let forward = Vector3::new(self.camera.forward.x, 0.0, self.camera.forward.z).normalize();
         let delta = delta_time * Vector3 {
             x: (self.move_speed * self.camera.right.x * self.velocity.x as f32) + (self.move_speed * forward.x * self.velocity.z as f32),
             y: self.velocity.y as f32,

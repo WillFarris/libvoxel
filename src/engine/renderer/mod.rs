@@ -73,7 +73,7 @@ impl Renderer {
         self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
     }
 
-    pub(crate) fn render_postprocess(&mut self, player: &Player, elapsed_time: f32){
+    pub(crate) fn render_postprocess(&mut self, elapsed_time: f32){
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.framebuffer_id as u32);
             gl::Viewport(0,0,self.dimensions.0,self.dimensions.1);

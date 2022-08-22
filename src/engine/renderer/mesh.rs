@@ -236,7 +236,7 @@ impl Mesh3D {
         }
     }
 
-    pub fn draw(&mut self, model_matrix: &Matrix4<f32>, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>) {
+    pub fn draw(&mut self, model_matrix: &Matrix4<f32>, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
         unsafe {
             let texture_map_str = c_str!("texture_map").as_ptr();
             gl::Uniform1i(gl::GetUniformLocation(self.shader.id, texture_map_str), 0);
@@ -244,8 +244,8 @@ impl Mesh3D {
             self.shader.set_mat4(c_str!("perspective_matrix"), &perspective_matrix);
             self.shader.set_mat4(c_str!("view_matrix"), &view_matrix);
             self.shader.set_mat4(c_str!("model_matrix"), &model_matrix);
+            self.shader.set_float(c_str!("time"), elapsed_time);
             //self.shader.set_vec3(unsafe {c_str!("sunlight_direction")}, sunlight_direction);
-            //self.shader.set_float(unsafe {c_str!("time")}, elapsed_time);
 
             gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
             gl::BindVertexArray(self.vao);

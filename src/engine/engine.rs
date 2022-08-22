@@ -88,6 +88,11 @@ impl Engine {
     
     pub fn update(&mut self, delta_time: f32) {
         if self.play_state == PlayState::Running {
+            for i in 0..self.entities.len() {
+                let entity = &mut self.entities[i];
+                entity.update(delta_time);
+            }
+
             self.player.update(&self.terrain, delta_time);
             self.elapsed_time += delta_time;
         }
@@ -105,9 +110,9 @@ impl Engine {
             let entity = &mut self.entities[i];
             entity.draw(&perspective_matrix, &view_matrix, self.elapsed_time);
         }
-        self.renderer.render_postprocess(&self.player, self.elapsed_time);
+        self.renderer.render_postprocess(self.elapsed_time);
 
-        self.gui.render(&self.player.inventory, &perspective_matrix, self.terrain.texture, self.dimensions);
+        self.gui.render(&self.player.inventory, &perspective_matrix, self.dimensions);
     }
 
     pub fn pause(&mut self) {
