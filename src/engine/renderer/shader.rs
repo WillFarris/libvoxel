@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use std::{ffi::CString, ptr};
-use cgmath::{Array, Matrix, Matrix4, Vector3, Vector2};
+use cgmath::{Array, Matrix, Matrix4, Vector3, Vector2, Matrix2, Matrix3};
 
 #[derive(Clone)]
 pub struct Shader {
@@ -63,6 +63,18 @@ impl Shader {
     pub fn set_mat4(&self, name: &CStr, mat: &Matrix4<f32>) {
         unsafe {
             gl::UniformMatrix4fv(gl::GetUniformLocation(self.id, name.as_ptr()), 1, gl::FALSE, mat.as_ptr());
+        }
+    }
+
+    pub fn set_mat3(&self, name: &CStr, mat: &Matrix3<f32>) {
+        unsafe {
+            gl::UniformMatrix3fv(gl::GetUniformLocation(self.id, name.as_ptr()), 1, gl::FALSE, mat.as_ptr());
+        }
+    }
+
+    pub fn set_mat2(&self, name: &CStr, mat: &Matrix2<f32>) {
+        unsafe {
+            gl::UniformMatrix2fv(gl::GetUniformLocation(self.id, name.as_ptr()), 1, gl::FALSE, mat.as_ptr());
         }
     }
 

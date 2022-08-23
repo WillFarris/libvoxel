@@ -3,7 +3,7 @@ use std::ffi::c_void;
 use std::ptr;
 use std::mem::size_of;
 use crate::offset_of;
-use cgmath::{Vector3, Matrix4, Vector2};
+use cgmath::{Vector3, Matrix4, Vector2, Matrix2, Matrix3};
 use gl::types::*;
 use image::{self, GenericImageView};
 
@@ -241,10 +241,12 @@ impl Mesh3D {
             let texture_map_str = c_str!("texture_map").as_ptr();
             gl::Uniform1i(gl::GetUniformLocation(self.shader.id, texture_map_str), 0);
 
+            self.shader.use_program();
             self.shader.set_mat4(c_str!("perspective_matrix"), &perspective_matrix);
             self.shader.set_mat4(c_str!("view_matrix"), &view_matrix);
             self.shader.set_mat4(c_str!("model_matrix"), &model_matrix);
             self.shader.set_float(c_str!("time"), elapsed_time);
+            
             //self.shader.set_vec3(unsafe {c_str!("sunlight_direction")}, sunlight_direction);
 
             gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
@@ -257,7 +259,6 @@ impl Mesh3D {
 }
 
 pub struct Mesh2D {
-    position: Vector2<f32>,
     vertices: Vec<Vertex2D>,
     texture: Texture,
     shader: Shader,
@@ -267,7 +268,7 @@ pub struct Mesh2D {
 }
 
 impl Mesh2D {
-    pub fn new(position: Vector2<f32>, vertices: Vec<Vertex2D>, texture: Texture, shader: Shader) -> Mesh2D {
+    pub fn new(vertices: Vec<Vertex2D>, texture: Texture, shader: Shader) -> Mesh2D {
         let mut vao = 0;
         let mut vbo = 0;
         
@@ -296,7 +297,6 @@ impl Mesh2D {
         }
 
         Mesh2D {
-            position,
             vertices,
             texture,
             shader,
@@ -306,11 +306,11 @@ impl Mesh2D {
         }
     }
 
-    pub fn draw(&mut self, scale: f32, perspective_matrix: &Matrix4<f32>) {
+    pub fn draw(&mut self, model_matrix: &Matrix3<f32>, perspective_matrix: &Matrix4<f32>) {
         self.shader.use_program();
-        self.shader.set_float(unsafe {c_str!("gui_scale")}, scale);
-        self.shader.set_mat4(unsafe {c_str!("perspective_matrix")}, perspective_matrix);
-        self.shader.set_vec2(unsafe {c_str!("translation")}, &self.position);
+        self.shader.set_mat4(unsafe { c_str!("perspective_matrix") }, &perspective_matrix);
+        self.shader.set_mat3(unsafe { c_str!("model_matrix") }, &model_matrix);
+        //self.shader.set_float(unsafe { c_str!("time") }, elapsed_time);
 
         unsafe {
             let texture_map_str = c_str!("texture_map").as_ptr();

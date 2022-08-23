@@ -20,9 +20,10 @@ impl GameObject {
     }
 
     pub fn update(&mut self, delta_time: f32) {
-        self.rotation.x += 1.0 * delta_time;
-        self.rotation.y += 1.0 * delta_time;
-        self.rotation.z += 1.0 * delta_time;
+        let rot_speed = 10.;
+        self.rotation.x += rot_speed * delta_time;
+        self.rotation.y += rot_speed * delta_time;
+        self.rotation.z += rot_speed * delta_time;
     }
 
     pub fn draw(&mut self, perspective_matrix: &Matrix4<f32>, view_matrix: &Matrix4<f32>, elapsed_time: f32) {
@@ -31,8 +32,8 @@ impl GameObject {
         let rotation = Quaternion::from_angle_x(Deg(self.rotation.x)) * Quaternion::from_angle_y(Deg(self.rotation.y)) * Quaternion::from_angle_z(Deg(self.rotation.z));
         let rotation_matrix = Matrix4::from(rotation);
         let translation_matrix = Matrix4::from_translation(self.position);
-        let model_matrix = translation_matrix * rotation_matrix;// * scale_matrix;
-
+        let model_matrix = translation_matrix * rotation_matrix * scale_matrix;
+        
         self.mesh.draw(&model_matrix, view_matrix, perspective_matrix, elapsed_time);
     }
 }

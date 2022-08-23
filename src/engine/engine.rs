@@ -1,5 +1,4 @@
 use cgmath::{Matrix4, Vector3};
-use noise::utils::PlaneMapBuilder;
 
 use crate::physics::vectormath;
 
@@ -8,7 +7,7 @@ use super::player::camera::perspective_matrix;
 use super::player::gui::Gui;
 use super::renderer::mesh::Texture;
 use super::renderer::shader::Shader;
-use super::renderer::{Renderer, mesh};
+use super::renderer::Renderer;
 use super::world::World;
 use super::player::Player;
 
@@ -62,7 +61,7 @@ impl Engine {
 
         let cube1_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/cube_test.png"), image::ImageFormat::Png);
         let cube1_shader = Shader::new(include_str!("../../shaders/cube_vertex.glsl"), include_str!("../../shaders/cube_fragment.glsl")).unwrap();
-        let cube1_pos = Vector3::<f32>::new(0.324, 12.0, 0.55);
+        let cube1_pos = Vector3::<f32>::new(0.5, 12.0, 0.5);
         let cube1_rot = Vector3::<f32>::new(0.0, 0.0, 0.0);
         let cube1_scale = Vector3::<f32>::new(1.0, 1.0, 1.0);
         let cube1 = GameObject::cube(cube1_pos, cube1_rot, cube1_scale, cube1_shader, cube1_texture);
@@ -71,7 +70,7 @@ impl Engine {
         let crosshair_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/crosshair.png"), image::ImageFormat::Png);
         let crosshair_shader = Shader::new(include_str!("../../shaders/crosshair_vertex.glsl"), include_str!("../../shaders/crosshair_fragment.glsl")).unwrap();
         let inventory_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/gui.png"), image::ImageFormat::Png);
-        let inventory_shader = Shader::new(include_str!("../../shaders/crosshair_vertex.glsl"), include_str!("../../shaders/crosshair_fragment.glsl")).unwrap();
+        let inventory_shader = Shader::new(include_str!("../../shaders/inventory_vertex.glsl"), include_str!("../../shaders/inventory_fragment.glsl")).unwrap();
         let gui = Gui::new(0.5, crosshair_shader, crosshair_texture, inventory_shader, inventory_texture);
         
         Self {
