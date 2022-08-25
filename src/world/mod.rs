@@ -3,13 +3,11 @@ pub mod block;
 use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::c_str;
+use crate::{c_str, renderer::{mesh::{ChunkMesh, Texture}, shader::Shader, vertex::Vertex3D, meshgen}};
 
 use noise::{Perlin, NoiseFn, Seedable};
 
 use self::block::{BLOCKS, MeshType};
-
-use super::renderer::{mesh::{ChunkMesh, Texture}, shader::Shader, meshgen, vertex::Vertex3D};
 
 #[cfg(target_os = "android")]
 extern crate android_log;
@@ -292,7 +290,7 @@ impl World {
             self.terrain_shader.use_program();
             self.terrain_shader.set_mat4(c_str!("perspective_matrix"), perspective_matrix);
             self.terrain_shader.set_mat4(c_str!("view_matrix"), view_matrix);
-            self.terrain_shader.set_vec3(c_str!("sunlight_direction"), &Vector3::new(0.0, 1.0, 0.0));
+            self.terrain_shader.set_vec3(c_str!("sunlight_direction"), &Vector3::new(0.0, 2.0_f32.sqrt(), 2.0_f32.sqrt()));
             self.terrain_shader.set_float(c_str!("time"), elapsed_time);
 
             for (_position, chunk) in &self.chunks {

@@ -22,6 +22,7 @@ out vec2 v_tex_coords;
 
 void main() {
     mat4 camera_matrix = perspective_matrix * view_matrix;
+
     vec4 pos4 = vec4(position, 1.0);
     if(vtype == 1) {
         pos4.xz += mod(position.y, 1.0) * 0.03 * sin(WIND_SPEED * (time + position.y));
@@ -34,7 +35,7 @@ void main() {
     
     
     v_position = pos4_new.xyz;
-    v_normal = transpose(inverse(mat3(model_matrix))) * normal;
+    v_normal = normal; //model_matrix * vec4(normal, 1.0).xyz;
     v_tex_coords = tex_coords;
 
     gl_Position = pos4_new;

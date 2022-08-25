@@ -1,6 +1,11 @@
 
 pub mod engine;
 pub mod physics;
+mod entity;
+mod player;
+mod renderer;
+mod macros;
+mod world;
 
 #[cfg(target_os = "android")]
 #[macro_use] extern crate log;

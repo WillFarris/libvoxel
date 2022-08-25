@@ -1,4 +1,4 @@
-use cgmath::{Matrix4, Vector3, Vector4, InnerSpace};
+pub(crate) use cgmath::{Matrix4, Vector3, Vector4, InnerSpace};
 
 use crate::physics::vectormath::Y_VECTOR;
 

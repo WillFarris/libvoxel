@@ -1,4 +1,4 @@
-use cgmath::{Vector2, Vector3};
+pub(crate) use cgmath::{Vector2, Vector3};
 use cgmath::prelude::*;
 
 #[derive(Copy, Clone, Debug)]

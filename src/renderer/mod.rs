@@ -1,18 +1,12 @@
-use cgmath::{Matrix4, Vector3};
-use render_texture::RenderTexture;
-use postprocess::PostProcessRenderMesh;
+use self::{postprocess::PostProcessRenderMesh, render_texture::RenderTexture};
 
-use self::shader::Shader;
 
-use super::{world::World, player::Player};
-
-pub mod mesh;
-pub mod meshgen;
-pub mod shader;
-pub mod vertex;
-pub mod render_texture;
-pub mod postprocess;
-
+pub(crate) mod mesh;
+pub(crate) mod meshgen;
+pub(crate) mod shader;
+pub(crate) mod vertex;
+pub(crate) mod render_texture;
+mod postprocess;
 
 pub struct Renderer {
     framebuffer_id: i32,
@@ -53,8 +47,8 @@ impl Renderer {
         let render_target = RenderTexture::new(dimensions.0, dimensions.1);
         let postprocess_rgb_texture_id = render_target.rgb_texture_id;
 
-        let postprocess_vertex_src = include_str!("../../../shaders/postprocess_vertex.glsl");
-        let postprocess_fragment_src = include_str!("../../../shaders/postprocess_fragment.glsl");
+        let postprocess_vertex_src = include_str!("../../shaders/postprocess_vertex.glsl");
+        let postprocess_fragment_src = include_str!("../../shaders/postprocess_fragment.glsl");
         let postprocess_target = PostProcessRenderMesh::new(postprocess_vertex_src, postprocess_fragment_src, postprocess_rgb_texture_id, dimensions);
 
         #[cfg(target_os = "android")] {

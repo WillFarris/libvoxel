@@ -1,6 +1,6 @@
 use cgmath::{Matrix4, Vector2, Matrix2, SquareMatrix, Matrix3, Zero, Vector3};
 
-use crate::engine::{renderer::{mesh::{Texture, Mesh2D}, shader::Shader, vertex::Vertex2D}, world::block::{TextureType, BLOCKS}};
+use crate::{renderer::{mesh::{Texture, Mesh2D}, shader::Shader, vertex::Vertex2D}, world::block::{TextureType, BLOCKS}};
 
 use super::inventory::Inventory;
 
@@ -82,7 +82,7 @@ impl Gui {
         
         
         let crosshair = Sprite2D::square( [0.0, 0.0].into(), 0.0, [0.075, 0.075].into(), crosshair_texture, crosshair_shader);
-        let hotbar = Sprite2D::from_verts(HOTBAR_FACE.to_vec(), [1.0, 1.0].into(),0.0, [1.0, 1.0].into(), inventory_texture, inventory_shader);
+        let hotbar = Sprite2D::from_verts(HOTBAR_FACE.to_vec(), [0.0, 0.0].into(),0.0, [1.0, 1.0].into(), inventory_texture, inventory_shader);
 
         Self {
             crosshair,
@@ -114,7 +114,7 @@ impl Gui {
                     continue;
                 };
 
-                let mut vertices = crate::engine::renderer::meshgen::CUBE_FACES[5].clone();
+                let mut vertices = crate::renderer::meshgen::CUBE_FACES[5].clone();
                 for v in 0..vertices.len() {
 
                     let scale = 0.07;

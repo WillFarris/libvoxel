@@ -1,8 +1,7 @@
-use crate::c_str;
-use std::ffi::c_void;
+pub use std::ffi::c_void;
 use std::ptr;
 use std::mem::size_of;
-use crate::offset_of;
+use crate::{offset_of, c_str};
 use cgmath::{Vector3, Matrix4, Vector2, Matrix2, Matrix3};
 use gl::types::*;
 use image::{self, GenericImageView};

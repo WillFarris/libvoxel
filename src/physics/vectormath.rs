@@ -1,7 +1,6 @@
-use std::ops::Mul;
+use crate::world::World;
+pub(crate) use std::ops::Mul;
 use cgmath::{Matrix3, Vector3, Vector4, Quaternion, Rotation, InnerSpace};
-
-use crate::engine::world::World;
 
 pub const X_VECTOR: Vector3<f32> = Vector3::new(1.0, 0.0, 0.0);
 pub const Y_VECTOR: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);

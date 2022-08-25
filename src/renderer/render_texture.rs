@@ -1,4 +1,4 @@
-pub struct RenderTexture {
+pub(crate) struct RenderTexture {
     pub(crate) framebuffer_id: u32,
     pub(crate) rgb_texture_id: u32,
     pub(crate) depthbuffer_id: u32,

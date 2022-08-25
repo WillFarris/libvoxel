@@ -1,15 +1,6 @@
 use cgmath::{Matrix4, Vector3};
 
-use crate::physics::vectormath;
-
-use super::entity::GameObject;
-use super::player::camera::perspective_matrix;
-use super::player::gui::Gui;
-use super::renderer::mesh::Texture;
-use super::renderer::shader::Shader;
-use super::renderer::Renderer;
-use super::world::World;
-use super::player::Player;
+use crate::{physics::vectormath, entity::gameobject::GameObject, player::{Player, gui::Gui, camera::perspective_matrix}, world::World, renderer::{Renderer, mesh::Texture, shader::Shader}};
 
 
 #[derive(PartialEq, Eq)]
@@ -52,25 +43,25 @@ impl Engine {
 
         let renderer = Renderer::create_and_init_gl(width, height);
 
-        let terrain_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/terrain.png"), image::ImageFormat::Png);
-        let world_shader = Shader::new(include_str!("../../shaders/block_vertex.glsl"), include_str!("../../shaders/block_fragment.glsl")).unwrap();
+        let terrain_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/terrain.png"), image::ImageFormat::Png);
+        let world_shader = Shader::new(include_str!("../shaders/block_vertex.glsl"), include_str!("../shaders/block_fragment.glsl")).unwrap();
         let terrain = World::new(terrain_texture, world_shader, seed, chunk_radius);
         
         let player = Player::new(Vector3::new(0.0, 16.0, 0.0), Vector3::new(0.0, 0.0, 1.0));
         let mut entities: Vec<GameObject> = Vec::new();
 
-        let cube1_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/cube_test.png"), image::ImageFormat::Png);
-        let cube1_shader = Shader::new(include_str!("../../shaders/cube_vertex.glsl"), include_str!("../../shaders/cube_fragment.glsl")).unwrap();
+        let cube1_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/cube_test.png"), image::ImageFormat::Png);
+        let cube1_shader = Shader::new(include_str!("../shaders/cube_vertex.glsl"), include_str!("../shaders/cube_fragment.glsl")).unwrap();
         let cube1_pos = Vector3::<f32>::new(0.5, 12.0, 0.5);
         let cube1_rot = Vector3::<f32>::new(0.0, 0.0, 0.0);
         let cube1_scale = Vector3::<f32>::new(1.0, 1.0, 1.0);
         let cube1 = GameObject::cube(cube1_pos, cube1_rot, cube1_scale, cube1_shader, cube1_texture);
         entities.push(cube1);
 
-        let crosshair_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/crosshair.png"), image::ImageFormat::Png);
-        let crosshair_shader = Shader::new(include_str!("../../shaders/crosshair_vertex.glsl"), include_str!("../../shaders/crosshair_fragment.glsl")).unwrap();
-        let inventory_texture = Texture::from_dynamic_image_bytes(include_bytes!("../../assets/gui.png"), image::ImageFormat::Png);
-        let inventory_shader = Shader::new(include_str!("../../shaders/inventory_vertex.glsl"), include_str!("../../shaders/inventory_fragment.glsl")).unwrap();
+        let crosshair_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/crosshair.png"), image::ImageFormat::Png);
+        let crosshair_shader = Shader::new(include_str!("../shaders/gui_vertex.glsl"), include_str!("../shaders/crosshair_fragment.glsl")).unwrap();
+        let inventory_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/gui.png"), image::ImageFormat::Png);
+        let inventory_shader = Shader::new(include_str!("../shaders/gui_vertex.glsl"), include_str!("../shaders/inventory_fragment.glsl")).unwrap();
         let gui = Gui::new(0.5, crosshair_shader, crosshair_texture, inventory_shader, inventory_texture);
         
         Self {

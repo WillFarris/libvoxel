@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+pub(crate) use std::ffi::CStr;
 use std::{ffi::CString, ptr};
 use cgmath::{Array, Matrix, Matrix4, Vector3, Vector2, Matrix2, Matrix3};
 

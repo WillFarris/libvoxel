@@ -1,8 +1,10 @@
-use std::{mem::size_of, ffi::c_void};
+pub(crate) use std::{mem::size_of, ffi::c_void};
 use std::ptr;
 use cgmath::{Vector3, Vector2};
 use gl::types::GLsizeiptr;
 
+
+use crate::{offset_of, c_str};
 
 use super::{shader::Shader, vertex::Vertex3D, mesh::Texture};
 

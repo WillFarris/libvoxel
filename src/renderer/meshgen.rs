@@ -2,6 +2,7 @@ use cgmath::{Vector2, Vector3};
 
 use super::vertex::Vertex3D;
 
+
 pub(crate) const CUBE_FACES: [[Vertex3D; 6]; 10] = [
     
     // Facing positive-X

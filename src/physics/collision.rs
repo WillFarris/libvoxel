@@ -1,6 +1,12 @@
 use cgmath::Vector3;
-//use std::mem::swap;
 
+pub trait Collider {
+    /// Returns the overlap between `self` and `other` as a `Vector3`
+    fn check_collision(&mut self, delta: Vector3<f32>, other: &mut impl Collider, delta_time: f32) -> Vector3<f32>;
+    fn bounding_box(&self) -> Rect3;
+}
+
+#[derive(Clone)]
 pub struct Rect3 {
     pub pos: Vector3<f32>,
     pub size: Vector3<f32>,
