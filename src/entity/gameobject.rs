@@ -36,7 +36,7 @@ impl GameObject {
         self.rotation.z += rot_speed * delta_time;
         */
 
-        self.position.y -= 0.01 * delta_time;
+        self.position.y -= 0.1 * delta_time;
     }
 
     pub fn draw(&mut self, perspective_matrix: &Matrix4<f32>, view_matrix: &Matrix4<f32>, elapsed_time: f32) {
@@ -52,13 +52,16 @@ impl GameObject {
 }
 
 impl Collider for GameObject {
-    fn check_collision(&mut self, delta: Vector3<f32>, other: &impl Collider) -> Vector3<f32> {
+    fn bounding_box(&self) -> crate::physics::collision::Rect3 {
+        let mut bounding_box = self.collision_box.clone();
+        bounding_box.pos += self.position;
+        bounding_box
+    }
+
+    fn check_overlap_x(&self, other: &impl Collider) -> f32 {
         let other_bounding_box = other.bounding_box();
         let mut self_bounding_box = self.bounding_box();
 
-        let mut overlap: Vector3<f32> = [0.0, 0.0, 0.0].into();
-
-        self_bounding_box.pos.x += delta.x;
         if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
             let x_overlap = if self_bounding_box.pos.x > other_bounding_box.pos.x {
                 (other_bounding_box.pos.x + 1.0) - self_bounding_box.pos.x 
@@ -66,37 +69,43 @@ impl Collider for GameObject {
                 -1.0 * (self_bounding_box.pos.x + self_bounding_box.size.x - other_bounding_box.pos.x)
             };
             self_bounding_box.pos.x += x_overlap;
-            overlap.x += x_overlap;
+            return x_overlap;
         }
 
-        self_bounding_box.pos.y += delta.y;
+        0.0
+    }
+
+    fn check_overlap_y(&self, other: &impl Collider) -> f32 {
+        let other_bounding_box = other.bounding_box();
+        let mut self_bounding_box = self.bounding_box();
+
         if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
             let y_overlap = if self_bounding_box.pos.y > other_bounding_box.pos.y {
-                (other_bounding_box.pos.y + 1.0) - self_bounding_box.pos.y 
+                (other_bounding_box.pos.y + 1.0) - self_bounding_box.pos.y
             } else {
                 -1.0 * (self_bounding_box.pos.y + self_bounding_box.size.y - other_bounding_box.pos.y)
             };
             self_bounding_box.pos.y += y_overlap;
-            overlap.y += y_overlap;
+            return y_overlap;
         }
 
-        self_bounding_box.pos.z += delta.z;
+        0.0
+    }
+
+    fn check_overlap_z(&self, other: &impl Collider) -> f32 {
+        let other_bounding_box = other.bounding_box();
+        let mut self_bounding_box = self.bounding_box();
+
         if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
             let z_overlap = if self_bounding_box.pos.z > other_bounding_box.pos.z {
-                (other_bounding_box.pos.z + 1.0) - self_bounding_box.pos.z
+                (other_bounding_box.pos.z + 1.0) - self_bounding_box.pos.z 
             } else {
                 -1.0 * (self_bounding_box.pos.z + self_bounding_box.size.z - other_bounding_box.pos.z)
             };
             self_bounding_box.pos.z += z_overlap;
-            overlap.z += z_overlap;
+            return z_overlap;
         }
-        
-        overlap
-    }
 
-    fn bounding_box(&self) -> crate::physics::collision::Rect3 {
-        let mut bounding_box = self.collision_box.clone();
-        bounding_box.pos += self.position;
-        bounding_box
+        0.0
     }
 }

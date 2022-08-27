@@ -1,6 +1,6 @@
 use cgmath::{Matrix4, Vector3};
 
-use crate::{physics::{vectormath, collision::Collider}, entity::gameobject::GameObject, player::{Player, gui::Gui, camera::perspective_matrix}, world::World, renderer::{Renderer, mesh::Texture, shader::Shader}};
+use crate::{physics::vectormath, entity::gameobject::GameObject, player::{Player, gui::Gui, camera::perspective_matrix}, world::World, renderer::{Renderer, mesh::Texture, shader::Shader}};
 
 
 #[derive(PartialEq, Eq)]
@@ -83,7 +83,9 @@ impl Engine {
                 entity.update(delta_time);
             }
 
-            self.player.update(&self.terrain, delta_time);
+            
+
+            self.player.update(&self.entities, &self.terrain, delta_time);
             self.elapsed_time += delta_time;
         }
     }

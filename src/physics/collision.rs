@@ -1,8 +1,11 @@
 use cgmath::Vector3;
 
 pub trait Collider {
-    /// Returns the overlap between `self` and `other` as a `Vector3`
-    fn check_collision(&mut self, delta: Vector3<f32>, other: &impl Collider) -> Vector3<f32>;
+    /// Returns the overlap between `self` and `other` on each axis
+    fn check_overlap_x(&self, other: &impl Collider) -> f32;
+    fn check_overlap_y(&self, other: &impl Collider) -> f32;
+    fn check_overlap_z(&self, other: &impl Collider) -> f32;
+
     fn bounding_box(&self) -> Rect3;
 }
 
