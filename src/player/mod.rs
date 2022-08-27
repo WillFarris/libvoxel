@@ -8,7 +8,7 @@ use camera::Camera;
 
 use super::world::World;
 use super::world::block::BLOCKS;
-use crate::physics::collision;
+use crate::physics::collision::{self, Collider, Rect3};
 use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, q_rsqrt}};
 use inventory::Inventory;
 
@@ -16,13 +16,16 @@ const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
 
 pub(crate) struct Player {
     pub(crate) camera: Camera,
-    position: Vector3<f32>,
+    pub position: Vector3<f32>,
     velocity: Vector3<f32>,
     acceleration: Vector3<f32>,
+
     move_speed: f32,
     grounded: bool,
     walking: bool,
     height: f32,
+
+    collision_box: Rect3,
 
     pub inventory: Inventory,
 }
@@ -38,6 +41,9 @@ impl Player {
             grounded: false,
             walking: false,
             height: 1.6,
+
+            collision_box: Rect3::new([-0.25, 0.0, -0.25].into(), [0.5, 1.6, 0.5].into()),
+
             inventory: Inventory::new(),
         }
     }
@@ -199,5 +205,56 @@ impl Player {
 
     pub fn stop_move(&mut self) {
         self.walking = false;
+    }
+}
+
+impl Collider for Player {
+    fn check_collision(&mut self, delta: Vector3<f32>, other: &impl Collider) -> Vector3<f32> {
+        let mut overlap: Vector3<f32> = [0.0, 0.0, 0.0].into();
+
+        let mut self_bounding_box = self.bounding_box();
+        let other_bounding_box = other.bounding_box();
+
+        self_bounding_box.pos.x += delta.x;
+        if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
+            let x_overlap = if self_bounding_box.pos.x > other_bounding_box.pos.x {
+                (other_bounding_box.pos.x + 1.0) - self_bounding_box.pos.x 
+            } else {
+                -1.0 * (self_bounding_box.pos.x + self_bounding_box.size.x - other_bounding_box.pos.x)
+            };
+            self_bounding_box.pos.x += x_overlap;
+            overlap.x += x_overlap;
+        }
+
+        self_bounding_box.pos.y += delta.y;
+        if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
+            let y_overlap = if self_bounding_box.pos.y > other_bounding_box.pos.y {
+                (other_bounding_box.pos.y + 1.0) - self_bounding_box.pos.y 
+            } else {
+                -1.0 * (self_bounding_box.pos.y + self_bounding_box.size.y - other_bounding_box.pos.y)
+            };
+            self_bounding_box.pos.y += y_overlap;
+            overlap.y += y_overlap;
+        }
+
+        self_bounding_box.pos.z += delta.z;
+        if rect_vs_rect(&self_bounding_box, &other_bounding_box) {
+            let z_overlap = if self_bounding_box.pos.z > other_bounding_box.pos.z {
+                (other_bounding_box.pos.z + 1.0) - self_bounding_box.pos.z
+            } else {
+                -1.0 * (self_bounding_box.pos.z + self_bounding_box.size.z - other_bounding_box.pos.z)
+            };
+            self_bounding_box.pos.z += z_overlap;
+            overlap.z += z_overlap;
+        }
+
+
+        overlap
+    }
+
+    fn bounding_box(&self) -> collision::Rect3 {
+        let mut bounding_box = self.collision_box.clone();
+        bounding_box.pos += self.position;
+        bounding_box
     }
 }

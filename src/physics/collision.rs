@@ -2,7 +2,7 @@ use cgmath::Vector3;
 
 pub trait Collider {
     /// Returns the overlap between `self` and `other` as a `Vector3`
-    fn check_collision(&mut self, delta: Vector3<f32>, other: &mut impl Collider, delta_time: f32) -> Vector3<f32>;
+    fn check_collision(&mut self, delta: Vector3<f32>, other: &impl Collider) -> Vector3<f32>;
     fn bounding_box(&self) -> Rect3;
 }
 
@@ -10,6 +10,15 @@ pub trait Collider {
 pub struct Rect3 {
     pub pos: Vector3<f32>,
     pub size: Vector3<f32>,
+}
+
+impl Rect3 {
+    pub fn new(pos: Vector3<f32>, size: Vector3<f32>) -> Rect3 {
+        Rect3 {
+            pos,
+            size,
+        }
+    }
 }
 
 /*pub fn point_vs_rect(p: &Vector3<f32>, r: &Rect3) -> bool { 

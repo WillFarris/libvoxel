@@ -1,8 +1,8 @@
 
 pub mod engine;
 pub mod physics;
-mod entity;
-mod player;
+pub mod entity;
+pub mod player;
 mod renderer;
 mod macros;
 mod world;
