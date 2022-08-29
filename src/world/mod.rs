@@ -7,7 +7,7 @@ use crate::{c_str, renderer::{mesh::{ChunkMesh, Texture}, shader::Shader, vertex
 
 use noise::{Perlin, NoiseFn, Seedable};
 
-use self::block::{BLOCKS, MeshType};
+use self::block::{BLOCKS, MeshType, block_index_by_name};
 
 #[cfg(target_os = "android")]
 extern crate android_log;
@@ -144,15 +144,15 @@ impl World {
                     let surface_y = self.surface_noise(global_x as f64, global_z as f64);
                     if (global_y as f64) < surface_y {
                         if global_y == surface_y.floor() as isize {
-                            chunk.blocks[block_x][block_y][block_z] = 2;
+                            chunk.blocks[block_x][block_y][block_z] = block_index_by_name("Grass");
                         } else if (global_y as f64) < (7.0 * surface_y/8.0).floor() {
                             match rand::random::<usize>()%100 {
-                                0 => chunk.blocks[block_x][block_y][block_z] = 15,
-                                1..=3 => chunk.blocks[block_x][block_y][block_z] = 16,
-                                _ => chunk.blocks[block_x][block_y][block_z] = 1,
+                                0 => chunk.blocks[block_x][block_y][block_z] = block_index_by_name("Iron Ore"),
+                                1..=3 => chunk.blocks[block_x][block_y][block_z] = block_index_by_name("Coal"),
+                                _ => chunk.blocks[block_x][block_y][block_z] = block_index_by_name("Stone"),
                             }                            
                         } else {
-                            chunk.blocks[block_x][block_y][block_z] = 3;
+                            chunk.blocks[block_x][block_y][block_z] = block_index_by_name("Dirt");
                         }
                     }
                 }
@@ -177,7 +177,7 @@ impl World {
                             match rand::random::<usize>()%100 {
                                 50..=99 => {
                                     let mut block_id = rand::random::<usize>()%10;
-                                    if block_id <= 6 { block_id = 12 } else if block_id <= 7 {block_id = 13} else if block_id <= 8 {block_id = 7} else {block_id = 10};
+                                    if block_id <= 6 { block_id = block_index_by_name("Short Grass") } else if block_id <= 7 {block_id = block_index_by_name("Fern")} else if block_id <= 8 {block_id = block_index_by_name("Rose")} else {block_id = block_index_by_name("Dandelion")};
                     
                                     let (position, foliage_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y+1, global_z));
                                     if let Some(chunk) = self.chunks.get_mut(&position) {
@@ -250,9 +250,9 @@ impl World {
             //chunk.blocks[block_index.x][block_index.y+y][block_index.z] = 9;
             let (chunk_index, block_index) = World::chunk_and_block_index(&(world_pos + Vector3::new(0, y, 0)));
             if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
-                chunk.blocks[block_index.x][block_index.y][block_index.z] = 9;
+                chunk.blocks[block_index.x][block_index.y][block_index.z] = block_index_by_name("Oak Log");
             } else {
-                self.append_queued_block(9, &chunk_index, &block_index);
+                self.append_queued_block(block_index_by_name("Oak Log"), &chunk_index, &block_index);
             }
         }
 
@@ -264,9 +264,9 @@ impl World {
                     }
                     let (chunk_index, block_index) = World::chunk_and_block_index(&(world_pos + Vector3::new(x, y, z)));
                     if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
-                        chunk.blocks[block_index.x][block_index.y][block_index.z] = 11;
+                        chunk.blocks[block_index.x][block_index.y][block_index.z] = block_index_by_name("Oak Leaves");
                     } else {
-                        self.append_queued_block(11, &chunk_index, &block_index);
+                        self.append_queued_block(block_index_by_name("Oak Leaves"), &chunk_index, &block_index);
                     }
                 }
             }

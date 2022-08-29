@@ -1,4 +1,4 @@
 /target
 Cargo.lock
 NDK
-assets/*
+assets/terrain.png
