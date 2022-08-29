@@ -1,9 +1,27 @@
 use cgmath::Vector3;
-//use std::mem::swap;
 
+pub trait Collider {
+    /// Returns the overlap between `self` and `other` on each axis
+    fn check_overlap_x(&self, other: &impl Collider) -> f32;
+    fn check_overlap_y(&self, other: &impl Collider) -> f32;
+    fn check_overlap_z(&self, other: &impl Collider) -> f32;
+
+    fn bounding_box(&self) -> Rect3;
+}
+
+#[derive(Clone)]
 pub struct Rect3 {
     pub pos: Vector3<f32>,
     pub size: Vector3<f32>,
+}
+
+impl Rect3 {
+    pub fn new(pos: Vector3<f32>, size: Vector3<f32>) -> Rect3 {
+        Rect3 {
+            pos,
+            size,
+        }
+    }
 }
 
 /*pub fn point_vs_rect(p: &Vector3<f32>, r: &Rect3) -> bool { 

@@ -1,6 +1,6 @@
-use cgmath::{Matrix4, Vector3, Vector4};
+pub(crate) use cgmath::{Matrix4, Vector3, Vector4, InnerSpace};
 
-use crate::physics::vectormath::{Y_VECTOR, cross, normalize, normalize_inplace};
+use crate::physics::vectormath::Y_VECTOR;
 
 
 pub struct Camera {
@@ -12,7 +12,7 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(position: Vector3<f32>, direction: Vector3<f32>) -> Self {
-        let n_direction = normalize(&direction);
+        let n_direction = direction.normalize();
         let p = position.clone();
         let mut s = Self {
             position: p,
@@ -40,9 +40,9 @@ impl Camera {
     }
 
     fn calculate_normals(&mut self) {
-        normalize_inplace(&mut self.forward);// = normalize_inplace(self.forward);
-        self.right = normalize(&cross(Y_VECTOR, self.forward));
-        self.up = normalize(& cross(self.forward, self.right));
+        self.forward = self.forward.normalize();
+        self.right = Y_VECTOR.cross(self.forward).normalize();
+        self.up = self.forward.cross(self.right).normalize();
     }
 
 
@@ -67,12 +67,12 @@ impl Camera {
     }
 
     pub fn rotate_on_y_axis(&mut self, angle: f32) {
-        self.forward = crate::physics::vectormath::quaternion_rotate(&self.forward, angle, &self.up);
+        self.forward = crate::physics::vectormath::quaternion_rotate(self.forward, angle, self.up);
         self.calculate_normals();
     }
 
     pub fn rotate_on_x_axis(&mut self, angle: f32) {
-        self.forward = crate::physics::vectormath::quaternion_rotate(&self.forward, angle, &self.right);
+        self.forward = crate::physics::vectormath::quaternion_rotate(self.forward, angle, self.right);
         self.calculate_normals();
     }
 }

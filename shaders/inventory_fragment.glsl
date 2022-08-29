@@ -21,5 +21,6 @@ void main() {
         tex_color.rgba += 0.4;
     }
 
+    //color = vec4(1.0);
     color = tex_color;
 }

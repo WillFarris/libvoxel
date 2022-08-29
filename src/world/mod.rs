@@ -1,10 +1,13 @@
+pub mod block;
+
 use std::collections::{HashMap, LinkedList};
 
 use cgmath::{Matrix4, Vector3, Vector2};
-use crate::{c_str, engine::{block::{BLOCKS, MeshType}}, graphics::{meshgen, shader::Shader}};
-use crate::graphics::mesh::{Mesh, Texture};
+use crate::{c_str, renderer::{mesh::{ChunkMesh, Texture}, shader::Shader, vertex::Vertex3D, meshgen}};
 
 use noise::{Perlin, NoiseFn, Seedable};
+
+use self::block::{BLOCKS, MeshType};
 
 #[cfg(target_os = "android")]
 extern crate android_log;
@@ -14,7 +17,7 @@ pub const CHUNK_SIZE: usize = 16;
 pub struct Chunk {
     blocks: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     metadata: [[[usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-    block_mesh: Option<Mesh>,
+    block_mesh: Box<Option<ChunkMesh>>,
     model_matrix: Matrix4<f32>,
 }
 
@@ -23,7 +26,7 @@ impl Chunk {
         Self {
             blocks,
             metadata: [[[0usize; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-            block_mesh: None,
+            block_mesh: Box::new(None),
             model_matrix: Matrix4::from_translation(Vector3::new(position.x as f32, position.y as f32, position.z as f32)),
         }
     }
@@ -51,6 +54,10 @@ impl Chunk {
             }
         }
     }
+
+    pub fn update_mesh(&mut self, vertices: Vec<Vertex3D>, texture: &Texture, shader: &Shader) {
+        self.block_mesh = Box::new(Some(ChunkMesh::new(vertices, texture.clone(), shader.clone())));
+    }
 }
 
 pub struct World {
@@ -60,8 +67,10 @@ pub struct World {
     noise_offset: Vector2<f64>,
     noise_scale: f64,
     perlin: Perlin,
+
+
     pub texture: Texture,
-    pub(crate) world_shader: Shader,
+    pub(crate) terrain_shader: Shader,
 }
 
 impl World {
@@ -82,7 +91,7 @@ impl World {
             noise_scale,
             perlin,
             texture,
-            world_shader,
+            terrain_shader: world_shader,
         };
         
         for chunk_x in -chunk_radius..chunk_radius {
@@ -276,12 +285,18 @@ impl World {
                             + 10.1
     }
 
-    pub fn render_world(&self) {
+    pub fn render(&self, view_matrix: &Matrix4<f32>, perspective_matrix: &Matrix4<f32>, elapsed_time: f32) {
         unsafe {
+            self.terrain_shader.use_program();
+            self.terrain_shader.set_mat4(c_str!("perspective_matrix"), perspective_matrix);
+            self.terrain_shader.set_mat4(c_str!("view_matrix"), view_matrix);
+            self.terrain_shader.set_vec3(c_str!("sunlight_direction"), &Vector3::new(0.0, 2.0_f32.sqrt(), 2.0_f32.sqrt()));
+            self.terrain_shader.set_float(c_str!("time"), elapsed_time);
+
             for (_position, chunk) in &self.chunks {
-                if let Some(m) = &chunk.block_mesh {
-                    self.world_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
-                    m.draw(&self.world_shader);
+                if let Some(m) = &*chunk.block_mesh {
+                    self.terrain_shader.set_mat4(c_str!("model_matrix"), &chunk.model_matrix);
+                    m.draw(&self.terrain_shader);
                 }
             }
         }
@@ -431,16 +446,16 @@ impl World {
                         if i == 0 {
                             continue;
                         }
-                        let cur = &crate::engine::block::BLOCKS[i];
+                        let cur = &block::BLOCKS[i];
                         let tex_coords:[(f32, f32);  6] = if let Some(texture_type) = &cur.texture_map {
                             let mut coords = [(0.0f32, 0.0f32); 6];
                             match texture_type {
-                                crate::engine::block::TextureType::Single(x, y) => {
+                                block::TextureType::Single(x, y) => {
                                     for i in 0..6 {
                                         coords[i] = (*x, *y)
                                     }
                                 },
-                                crate::engine::block::TextureType::TopAndSide((x_top, y_top), (x_side, y_side)) => {
+                                block::TextureType::TopAndSide((x_top, y_top), (x_side, y_side)) => {
                                     coords[0] = (*x_side, *y_side);
                                     coords[1] = (*x_side, *y_side);
                                     coords[2] = (*x_top, *y_top);
@@ -448,7 +463,7 @@ impl World {
                                     coords[4] = (*x_side, *y_side);
                                     coords[5] = (*x_side, *y_side);
                                 },
-                                crate::engine::block::TextureType::TopSideBottom((x_top, y_top), (x_side, y_side), (x_bottom, y_bottom)) => {
+                                block::TextureType::TopSideBottom((x_top, y_top), (x_side, y_side), (x_bottom, y_bottom)) => {
                                     coords[0] = (*x_side, *y_side);
                                     coords[1] = (*x_side, *y_side);
                                     coords[2] = (*x_top, *y_top);
@@ -456,7 +471,7 @@ impl World {
                                     coords[4] = (*x_side, *y_side);
                                     coords[5] = (*x_side, *y_side);
                                 },
-                                crate::engine::block::TextureType::TopSideFrontActivatable(
+                                block::TextureType::TopSideFrontActivatable(
                                     (x_front_inactive, y_front_inactive),
                                     (x_front_active, y_front_active),
                                     (x_side, y_side),
@@ -583,8 +598,7 @@ impl World {
 
         if !block_vertices.is_empty() {
             if let Some(chunk) = self.chunks.get_mut(chunk_index) {
-                let block_mesh = Mesh::new(block_vertices, &self.texture, &self.world_shader);
-                chunk.block_mesh = Some(block_mesh);
+                chunk.update_mesh(block_vertices, &self.texture, &self.terrain_shader);
             }
         }
     }
