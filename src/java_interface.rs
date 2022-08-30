@@ -1,7 +1,7 @@
 extern crate jni;
 extern crate gl;
 
-use crate::engine::engine::{Engine, PlayerMovement};
+use crate::engine::{Engine, PlayerMovement};
 
 use self::jni::JNIEnv;
 use self::jni::objects::JClass;
