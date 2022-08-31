@@ -176,8 +176,13 @@ impl World {
                             }
                             match rand::random::<usize>()%100 {
                                 50..=99 => {
-                                    let mut block_id = rand::random::<usize>()%10;
-                                    if block_id <= 6 { block_id = block_index_by_name("Short Grass") } else if block_id <= 7 {block_id = block_index_by_name("Fern")} else if block_id <= 8 {block_id = block_index_by_name("Rose")} else {block_id = block_index_by_name("Dandelion")};
+                                    let rand_val = rand::random::<usize>()%10;
+                                    let block_id = match rand_val {
+                                        0..=6 => block_index_by_name("Short Grass"),
+                                        7 => block_index_by_name("Fern"),
+                                        8 => block_index_by_name("Rose"),
+                                        _ => block_index_by_name("Dandelion"),
+                                    };
                     
                                     let (position, foliage_block_index) = World::chunk_and_block_index(&Vector3::new(global_x, global_y+1, global_z));
                                     if let Some(chunk) = self.chunks.get_mut(&position) {
@@ -224,9 +229,6 @@ impl World {
     fn gen_caves(&mut self, chunk_index: &Vector3<isize>, chunk: &mut Chunk) {
         let noise_scale = 0.1;
         let cutoff = 0.6;
-
-        //println!("Digging caves...");
-
         for block_x in 0..CHUNK_SIZE {
             for block_y in 0..CHUNK_SIZE {
                 for block_z in 0..CHUNK_SIZE {
@@ -243,11 +245,7 @@ impl World {
     }
 
     pub fn place_tree(&mut self, world_pos: Vector3<isize>) {
-
-        
-
         for y in 0..5 {
-            //chunk.blocks[block_index.x][block_index.y+y][block_index.z] = 9;
             let (chunk_index, block_index) = World::chunk_and_block_index(&(world_pos + Vector3::new(0, y, 0)));
             if let Some(chunk) = self.chunks.get_mut(&chunk_index) {
                 chunk.blocks[block_index.x][block_index.y][block_index.z] = block_index_by_name("Oak Log");

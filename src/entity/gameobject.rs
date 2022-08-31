@@ -1,6 +1,6 @@
 pub(crate) use cgmath::{Vector3, Matrix4, Quaternion, Rotation3, Deg};
 
-use crate::{renderer::{mesh::{Mesh3D, Texture}, meshgen::DEFAULT_CUBE, shader::Shader}, physics::collision::{Rect3, rect_vs_rect, Collider}};
+use crate::{renderer::{mesh::{Mesh3D, Texture}, meshgen::DEFAULT_CUBE, shader::Shader}, physics::collision::{Rect3, rect_vs_rect, Collider}, world::World, player::Player};
 
 pub struct GameObject {
     mesh: Mesh3D,
@@ -36,7 +36,7 @@ impl GameObject {
         self.rotation.z += rot_speed * delta_time;
         */
 
-        self.position.y -= 0.1 * delta_time;
+        //self.position.y -= 0.1 * delta_time;
     }
 
     pub fn draw(&mut self, perspective_matrix: &Matrix4<f32>, view_matrix: &Matrix4<f32>, elapsed_time: f32) {
