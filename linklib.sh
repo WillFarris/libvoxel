@@ -1,8 +1,16 @@
 #!/bin/bash
 
-if [ ! -d "NDK/android-ndk-r22b" ]; then
-    echo "Missing  Android NDK in 'NDK/android-ndk-r22b'"
+if [ "$#" -ne 1 ]; then
+    echo "Error: must specify path to Android project"
     exit -1
+fi
+
+if [ ! -d "NDK/android-ndk-r22b" ]; then
+    echo "Missing  Android NDK in 'NDK/android-ndk-r22b', installing..."
+    cd NDK
+    wget https://dl.google.com/android/repository/android-ndk-r22b-linux-x86_64.zip && \
+    unzip android-ndk-r22b-linux-x86_64.zip && \
+    cd ..
 fi
 
 echo "Compiling library..."
