@@ -67,7 +67,7 @@ void main(){
     blurred_color /= count;*/
 
     vec4 out_color = blurred_color;
-    out_color *= (1.0 - 0.75 * vignette);
+    out_color *= (1.0 - 0.25 * vignette);
 
     vec3 direction = vec3(c, 1.0) + camera_forward;
     

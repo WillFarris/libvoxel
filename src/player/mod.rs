@@ -14,7 +14,7 @@ use crate::physics::collision::{self, Collider, Rect3};
 use crate::physics::{collision::rect_vs_rect, vectormath::{Y_VECTOR, q_rsqrt}};
 use inventory::Inventory;
 
-const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81, z: 0.0};
+const GRAVITY: Vector3<f32> = Vector3 {x: 0.0, y: -9.81 * 2.0, z: 0.0};
 
 pub(crate) struct Player {
     pub(crate) camera: Camera,
@@ -188,7 +188,7 @@ impl Player {
 
     pub fn jump(&mut self) {
         if self.grounded {
-            self.velocity.y += 6f32;
+            self.velocity.y += 7f32;
             self.grounded = false;
         }
     }
