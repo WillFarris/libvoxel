@@ -24,7 +24,7 @@ void main() {
     vec4 pos4_new = camera_matrix * model_matrix * pos4;
     
     v_position = pos4_new.xyz;
-    v_normal = transpose(inverse(mat3(model_matrix))) * normal;
+    v_normal = normal;
     v_tex_coords = tex_coords;
 
     gl_Position = pos4_new;

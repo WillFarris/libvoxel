@@ -39,15 +39,15 @@ impl Engine {
         let renderer = Renderer::create_and_init_gl(width, height);
 
         let terrain_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/terrain.png"), image::ImageFormat::Png);
-        let world_shader = Shader::new(include_str!("../shaders/block_vertex.glsl"), include_str!("../shaders/block_fragment.glsl")).unwrap();
-        let terrain = World::new(terrain_texture, world_shader, seed, chunk_radius);
+        let terrain_shader = Shader::new(include_str!("../shaders/block_vertex.glsl"), include_str!("../shaders/gbuffer_fragment.glsl")).unwrap();
+        let terrain = World::new(terrain_texture, terrain_shader, seed, chunk_radius);
         
         let player = Player::new(Vector3::new(0.0, 16.0, 0.0), Vector3::new(0.0, 0.0, 1.0));
         let mut entities: Vec<GameObject> = Vec::new();
 
         // Test cube
         let cube1_texture = Texture::from_dynamic_image_bytes(include_bytes!("../assets/cube_test.png"), image::ImageFormat::Png);
-        let cube1_shader = Shader::new(include_str!("../shaders/cube_vertex.glsl"), include_str!("../shaders/cube_fragment.glsl")).unwrap();
+        let cube1_shader = Shader::new(include_str!("../shaders/cube_vertex.glsl"), include_str!("../shaders/gbuffer_fragment.glsl")).unwrap();
         let cube1_pos = Vector3::<f32>::new(0.5, 12.0, 0.5);
         let cube1_rot = Vector3::<f32>::new(0.0, 0.0, 0.0);
         let cube1_scale = Vector3::<f32>::new(1.0, 1.0, 1.0);
@@ -89,15 +89,18 @@ impl Engine {
         let view_matrix: Matrix4<f32> = self.player.camera.view_matrix();
 
         
-        
-        self.renderer.select_rendertexture();
+        self.renderer.bind_gbuffer_fbo();
         self.terrain.render(&view_matrix, &perspective_matrix, self.elapsed_time);
         for i in 0..self.entities.len() {
             let entity = &mut self.entities[i];
             entity.draw(&perspective_matrix, &view_matrix, self.elapsed_time);
         }
-        self.renderer.render_postprocess(self.elapsed_time);
 
+        self.renderer.render_gbuffer_to_screen(&self.player.camera.position);
+
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+        }
         self.gui.render(&self.player.inventory, &perspective_matrix, self.dimensions);
     }
 

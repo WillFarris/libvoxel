@@ -8,7 +8,7 @@ use crate::{offset_of, c_str};
 
 use super::{shader::Shader, vertex::Vertex3D, mesh::Texture};
 
-pub const POSTPROCESS_VERTICES: [Vertex3D; 6] = [
+pub const SCREEN_FILL_QUAD_VERTS: [Vertex3D; 6] = [
     Vertex3D { position: Vector3::new( 1.0, -1.0, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(1.0, 0.0) , vtype: 0 },   // Back-bottom-right
     Vertex3D { position: Vector3::new(-1.0, -1.0, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(0.0, 0.0) , vtype: 0 },   // Back-bottom-left
     Vertex3D { position: Vector3::new(-1.0,  1.0, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(0.0, 1.0) , vtype: 0 },   // Back-top-left
@@ -18,23 +18,19 @@ pub const POSTPROCESS_VERTICES: [Vertex3D; 6] = [
     Vertex3D { position: Vector3::new( 1.0,  1.0, 0.0), normal: Vector3::new( 0.0,  0.0, -1.0), tex_coords: Vector2::new(1.0, 1.0), vtype: 0  }     // Back-top-right
 ];
 
-pub(crate) struct PostProcessRenderMesh {
+pub(crate) struct ScreenFillQuad {
     vertices: Vec<Vertex3D>,
-    shader: Shader,
-    texture: Texture,
     dimensions: (i32, i32),
-
+    pub(crate) shader: Shader,
     vao: u32,
     vbo: u32,
 }
 
-impl PostProcessRenderMesh {
+impl ScreenFillQuad {
 
-    pub(crate) fn new(vertex_src: &str, fragment_src: &str, rendertexture_id: u32, dimensions: (i32, i32)) -> PostProcessRenderMesh {
-        let vertices = POSTPROCESS_VERTICES.to_vec();
-        let texture = Texture::from_id(rendertexture_id);
-        let shader = Shader::new(vertex_src, fragment_src).unwrap();
-
+    pub(crate) fn new(shader: Shader, dimensions: (i32, i32)) -> ScreenFillQuad {
+        let vertices = SCREEN_FILL_QUAD_VERTS.to_vec();
+        
         let mut vao = 0;
         let mut vbo = 0;
 
@@ -63,33 +59,19 @@ impl PostProcessRenderMesh {
         }
 
         Self {
-            vertices, 
-            shader,
-            texture,
+            vertices,
             dimensions,
-
+            shader,
             vao,
             vbo,
         }
     }
 
-    pub(crate) fn render(&mut self, elapsed_time: f32) {      
+    pub(crate) fn render(&mut self) {
         self.shader.use_program();
         unsafe {
-            self.shader.set_float(crate::c_str!("time"), elapsed_time);
-            self.shader.set_vec3(crate::c_str!("resolution"), &Vector3::new(self.dimensions.0 as f32, self.dimensions.1 as f32, 0.0));
+            self.shader.set_vec3(c_str!("resolution"), &Vector3 { x: self.dimensions.0 as f32, y: self.dimensions.1 as f32, z: 0.0 });
 
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.texture.id);
-            let sampler = c_str!("renderTexture").as_ptr();
-            gl::Uniform1i(gl::GetUniformLocation(self.shader.id, sampler), 0);
-
-            /*gl::ActiveTexture(gl::TEXTURE1);
-            gl::BindTexture(gl::TEXTURE_2D, depth_tex_id);
-            let sampler = c_str!("depthTexture").as_ptr();
-            gl::Uniform1i(gl::GetUniformLocation(shader.id, sampler), 1);*/
-
-            gl::ActiveTexture(gl::TEXTURE0);
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
             gl::BindVertexArray(0);

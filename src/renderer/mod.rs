@@ -1,17 +1,21 @@
-use self::{postprocess::PostProcessRenderMesh, render_texture::RenderTexture};
+use cgmath::Vector3;
+
+use crate::c_str;
+
+use self::{screen_quad::ScreenFillQuad, gbuffer::GBuffer, shader::Shader};
 
 
 pub(crate) mod mesh;
 pub(crate) mod meshgen;
 pub(crate) mod shader;
 pub(crate) mod vertex;
-pub(crate) mod render_texture;
-mod postprocess;
+pub(crate) mod gbuffer;
+mod screen_quad;
 
 pub struct Renderer {
-    framebuffer_id: i32,
-    render_target: RenderTexture,
-    postprocess_target: PostProcessRenderMesh,
+    screen_framebuffer_id: i32,
+    gbuffer: GBuffer,
+    screen_fill_quad: ScreenFillQuad,
     dimensions: (i32, i32),
 }
 
@@ -40,40 +44,66 @@ impl Renderer {
         }
 
         let dimensions = (width, height);
-        let mut framebuffer_id = 0;
+        let mut screen_framebuffer_id = 0;
         unsafe {
-            gl::GetIntegerv(gl::FRAMEBUFFER_BINDING, &mut framebuffer_id);
+            gl::GetIntegerv(gl::FRAMEBUFFER_BINDING, &mut screen_framebuffer_id);
         }
-        let render_target = RenderTexture::new(dimensions.0, dimensions.1);
-        let postprocess_rgb_texture_id = render_target.rgb_texture_id;
 
-        let postprocess_vertex_src = include_str!("../../shaders/postprocess_vertex.glsl");
-        let postprocess_fragment_src = include_str!("../../shaders/postprocess_fragment.glsl");
-        let postprocess_target = PostProcessRenderMesh::new(postprocess_vertex_src, postprocess_fragment_src, postprocess_rgb_texture_id, dimensions);
+        
+        let gbuffer = GBuffer::new(dimensions.0, dimensions.1);
+
+        let quad_vertex_src = include_str!("../../shaders/screen_fill_quad_vertex.glsl");
+        let quad_fragment_src = include_str!("../../shaders/gbuffer_lighting_fragment.glsl");
+        let quad_shader = Shader::new(quad_vertex_src, quad_fragment_src).unwrap();
+        let screen_fill_quad = ScreenFillQuad::new(quad_shader, (width, height));
+
 
         #[cfg(target_os = "android")] {
             debug!("Setup Renderer");
         }
 
         Self {
-            framebuffer_id,
-            render_target,
+            screen_framebuffer_id,
+            gbuffer,
             dimensions,
-            postprocess_target,
+            screen_fill_quad,
         }
     }
 
-    pub(crate) fn select_rendertexture(&mut self) {
-        self.render_target.set_as_target_and_clear(0.1, 0.6, 1.0, 1.0);
+    pub(crate) fn bind_gbuffer_fbo(&mut self) {
+        self.gbuffer.bind_gbuffer_fbo();
     }
 
-    pub(crate) fn render_postprocess(&mut self, elapsed_time: f32){
+    pub(crate) fn bind_screen_fbo(&self) {
         unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.framebuffer_id as u32);
-            gl::Viewport(0,0,self.dimensions.0,self.dimensions.1);
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.screen_framebuffer_id as u32);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
-        self.postprocess_target.render(elapsed_time);
+    }
+
+    pub(crate) fn render_gbuffer_to_screen(&mut self, camera_pos: &Vector3<f32>){
+        unsafe {
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.screen_framebuffer_id as u32);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+        }
+        self.screen_fill_quad.shader.use_program();
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, self.gbuffer.position_texture_id);
+            gl::ActiveTexture(gl::TEXTURE1);
+            gl::BindTexture(gl::TEXTURE_2D, self.gbuffer.normal_texture_id);
+            gl::ActiveTexture(gl::TEXTURE2);
+            gl::BindTexture(gl::TEXTURE_2D, self.gbuffer.color_spec_texture_id);
+
+            let sampler = c_str!("positionTexture").as_ptr();
+            gl::Uniform1i(gl::GetUniformLocation(self.screen_fill_quad.shader.id, sampler), 0);
+            let sampler = c_str!("normalTexture").as_ptr();
+            gl::Uniform1i(gl::GetUniformLocation(self.screen_fill_quad.shader.id, sampler), 1);
+            let sampler = c_str!("colorSpecTexture").as_ptr();
+            gl::Uniform1i(gl::GetUniformLocation(self.screen_fill_quad.shader.id, sampler), 2);
+
+            self.screen_fill_quad.shader.set_vec3(c_str!("cameraPos"), camera_pos);
+        }
+        self.screen_fill_quad.render();
     }
 }
