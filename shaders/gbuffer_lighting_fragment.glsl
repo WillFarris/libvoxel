@@ -28,9 +28,26 @@ void main(){
 
     vec3 light = vec3(0.0, 32.0, 0.0);
 
-    vec3 ambient = albedo * 0.1;
+    vec3 ambient = albedo * 0.4;
     vec3 dir = normalize(light - cameraPos);
     vec3 diffuse = max(dot(normal, dir), 0.0) * albedo;
 
-    color = vec4(diffuse + ambient, 1.0);
+    float dist = 1.0 - length(position - cameraPos) / zf;
+
+    vec4 shaded = vec4(0.0, 0.0, 0.0, 1.0);
+    shaded.rgb = diffuse + ambient;
+
+    /*
+    if(uv.x < 0.5 && uv.y < 0.5) {
+        color = vec4(position, 1.0);
+    } else if(uv.x < 0.5 && uv.y >= 0.5) {
+        color = vec4(albedo, 1.0);
+    } else if(uv.y < 0.5) {
+        color = vec4(normal, 1.0);
+    } else {
+        color = shaded;
+    }
+    */
+
+    color = shaded;
 }

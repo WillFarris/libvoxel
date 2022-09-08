@@ -23,7 +23,7 @@ void main() {
     vec4 pos4 = vec4(position, 1.0);
     vec4 pos4_new = camera_matrix * model_matrix * pos4;
     
-    v_position = pos4_new.xyz;
+    v_position = (model_matrix * vec4(position, 1.0)).xyz;
     v_normal = normal;
     v_tex_coords = tex_coords;
 
