@@ -26,23 +26,28 @@ void main(){
     vec3 normal = texture(normalTexture, uv).rgb;
     vec3 albedo = texture(colorSpecTexture, uv).rgb;
 
-    vec3 light = vec3(0.0, 32.0, 0.0);
+    vec3 light = cameraPos;//vec3(0.0, 16.0, 0.0);
 
-    vec3 ambient = albedo * 0.4;
-    vec3 dir = normalize(light - cameraPos);
-    vec3 diffuse = max(dot(normal, dir), 0.0) * albedo;
+    vec3 ambient = albedo * 0.01;
+    
+    vec3 lightDir = light - position;
+    float lightDist = 0.5 * length(lightDir);
+    lightDir /= lightDist;
 
-    float dist = 1.0 - length(position - cameraPos) / zf;
+    vec3 diffuse = max(dot(normal, lightDir), 0.0) * albedo / lightDist;
+
+    vec3 camDir = cameraPos - position;
 
     vec4 shaded = vec4(0.0, 0.0, 0.0, 1.0);
     shaded.rgb = diffuse + ambient;
 
     /*
-    if(uv.x < 0.5 && uv.y < 0.5) {
+    vec2 cutoff = vec2(0.5, 0.5);
+    if(uv.x < cutoff.x && uv.y < cutoff.y) {
         color = vec4(position, 1.0);
-    } else if(uv.x < 0.5 && uv.y >= 0.5) {
+    } else if(uv.x < cutoff.x && uv.y >= cutoff.y) {
         color = vec4(albedo, 1.0);
-    } else if(uv.y < 0.5) {
+    } else if(uv.y < cutoff.y) {
         color = vec4(normal, 1.0);
     } else {
         color = shaded;

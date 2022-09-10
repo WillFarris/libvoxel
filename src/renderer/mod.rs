@@ -82,10 +82,7 @@ impl Renderer {
     }
 
     pub(crate) fn render_gbuffer_to_screen(&mut self, camera_pos: &Vector3<f32>){
-        unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.screen_framebuffer_id as u32);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
+        self.bind_screen_fbo();
         self.screen_fill_quad.shader.use_program();
         unsafe {
             gl::ActiveTexture(gl::TEXTURE0);

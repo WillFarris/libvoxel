@@ -1,6 +1,6 @@
 pub(crate) use cgmath::{Vector3, Matrix4, Quaternion, Rotation3, Deg};
 
-use crate::{renderer::{mesh::{Mesh3D, Texture}, meshgen::DEFAULT_CUBE, shader::Shader}, physics::collision::{Rect3, rect_vs_rect, Collider}, world::World, player::Player};
+use crate::{renderer::{mesh::{Mesh3D, Texture}, meshgen::DEFAULT_CUBE, shader::Shader}, physics::collision::{Rect3, rect_vs_rect, Collider}};
 
 pub struct GameObject {
     mesh: Mesh3D,
